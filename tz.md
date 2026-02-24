@@ -118,7 +118,7 @@
 *   **Модель ветвления:** GitFlow (упрощенный).
     *   `main` — стабильная, рабочая версия.
     *   `develop` — ветка для разработки.
-    *   `feature/ticket-123-add-login-page` — ветки для разработки новой функциональности. Создаются от `main`.
+    *   `feature/ticket-123-add-login-page` — ветки для разработки новой функциональности. Создаются от `develop`.
 
 #### **5.3. CI/CD (Continuous Integration / Continuous Deployment)**
 Будет настроен CI/CD-пайплайн с использованием GitHub Actions.
