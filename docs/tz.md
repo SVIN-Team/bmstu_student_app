@@ -81,6 +81,8 @@
 
 *   `POST /api/auth/register` - Регистрация нового пользователя.
 *   `POST /api/auth/login` - Авторизация, получение токенов.
+*   `POST /api/auth/refresh` - Обновление access-токена по действующему refresh-токену.
+*   `POST /api/auth/logout` - Выход из системы (ревокация refresh-токена).
 *   `GET /api/schedule?group_id=...&date=...` - Получение расписания для группы на указанную дату/неделю.
 *   `GET /api/queues?subject_id=...` - Получение списка активных очередей по предмету.
 *   `POST /api/queues/{id}/signup` - Запись текущего пользователя на слот в очереди.
