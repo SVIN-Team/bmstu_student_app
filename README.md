@@ -13,3 +13,5 @@
 
 **Тип приложения (MVP): Веб-приложение**  
 Более подробно в ТЗ: docs/tz.md
+
+**Планирование задач** ведется в [проекте github](https://github.com/orgs/SVIN-Team/projects/2/views/1)
