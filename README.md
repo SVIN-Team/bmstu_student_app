@@ -1,11 +1,7 @@
 # Командный проект по курсу 8 семестра МГТУ им. Н. Э. Баумана "Технология командной разработки ПО".
 
-<<<<<<< Updated upstream
-### Тема проекта
-**Студенческое приложение для просмотра расписания, записи в очередь на сдачу предмета**
-=======
+
 Веб-приложение для управления расписанием и электронными очередями на сдачу работ в рамках учебного процесса.
->>>>>>> Stashed changes
 
 ## Быстрый старт (локальный запуск)
 
@@ -15,12 +11,6 @@
     cd your-repo
     ```
 
-<<<<<<< Updated upstream
-**Тип приложения (MVP): Веб-приложение**  
-Более подробно в ТЗ: docs/tz.md
-
-**Планирование задач** ведется в [проекте github](https://github.com/orgs/SVIN-Team/projects/2/views/1)
-=======
 2.  **Настройте переменные окружения:**
     Скопируйте `.env.example` в `.env` и заполните необходимые значения.
     ```bash
@@ -57,4 +47,3 @@
 | <img src="./docs/team/Ilya_Proshin.jpg" width="100" alt="Фото Прошина Ильи"> | **Прошин Илья** | Backend-разработчик (Go) | [GitHub](https://github.com/Kukushenok) |
 | <img src="./docs/team/Lomovskaya_Sophia.jpg" width="100" alt="Фото Ломовской Софьи"> | **Ломовская Софья** | Backend-разработчик (Go) | [GitHub](https://github.com/sofjabo) |
 | <img src="./docs/team/Lukyanenko_Vladislav.jpg" width="100" alt="Фото Лукьяненко Владислава"> | **Лукьяненко Владислав** | Backend-разработчик (Go) | [GitHub](https://github.com/Vladragone) |
->>>>>>> Stashed changes
