@@ -123,7 +123,7 @@ Response (200 OK):
 }
 ```
 
-\+ Set-Cookie: `refresh_token=...; HttpOnly; Secure; SameSite=Strict; Path=/auth; Max-Age=604800`
+\+ Set-Cookie: `refresh_token=...; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=604800`
 
 #### **3.5.4. Эндпоинты расписания**
 
@@ -262,9 +262,8 @@ Response (200 OK):
 
 **GET /queues/{id}**
 
-Возвращает детальную информацию об очереди. Состав данных зависит от роли.
 
-**Response для Студента:**
+**Response:**
 
 ```json
 {
@@ -279,22 +278,23 @@ Response (200 OK):
     "slots_count": 12,
     "my_slot": {
       "slot_id": "uuid",
-      "position": 5,
-      "status": "waiting"
+      "status": "waiting",
+      "signed_up_at": "2026-02-23T08:05:10Z"
     },
     "slots": [
-      { "position": 1, "status": "waiting" },
-      { "position": 2, "status": "waiting" }
+        {
+            "slot_id": "...",
+            "student": { "id": "...", "first_name": "Иван", "last_name": "Петров" },
+            "status": "waiting",
+            "signed_up_at": "2026-02-23T08:01:00Z"
+        }
     ]
   }
 }
+
 ```
 
-> Поле `my_slot` присутствует, только если пользователь записан. Поле `slots` содержит только `position` и `status` без персональных данных.
-
-**Response для Старосты/Администратора:**
-
-В `slots` добавляются `slot_id`, `student` (id, first_name, last_name), `signed_up_at`.
+> Поле `my_slot` присутствует, только если пользователь записан.
 
 **POST /queues**
 
@@ -362,11 +362,16 @@ Response (201 Created):
 {
   "success": true,
   "data": {
-    "slot_id": "slot-uuid",
-    "position": 12,
-    "queue_size": 12
+    "slot": {
+      "id": "new-slot-uuid",
+      "queue_id": "queue-uuid",
+      "student_id": "current-user-uuid",
+      "status": "waiting",
+      "signed_up_at": "2026-02-23T09:12:34Z"
+    }
   }
 }
+
 ```
 
 Response (409 Conflict — очередь заполнена):
@@ -444,9 +449,9 @@ Response (200 OK):
     "transferred_students": [
       {
         "slot_id": "new-slot-uuid-1",
-        "position": 1,
         "student": { "id": "student-uuid-1", "first_name": "Иван", "last_name": "Петров" },
-        "original_status": "failed"
+        "original_status": "failed",
+        "signed_up_at": "2026-02-24T10:00:00Z"
       }
     ]
   }
@@ -481,8 +486,8 @@ Response (200 OK):
     "slots": [
       {
         "slot_id": "slot-uuid",
-        "position": 3,
         "status": "waiting",
+        "signed_up_at": "2026-02-23T08:05:10Z",
         "queue": {
           "id": "queue-uuid",
           "subject": { "id": "subj-uuid", "name": "Базы данных" },
