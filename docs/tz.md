@@ -13,7 +13,7 @@
 | **Расписание** | Совокупность Занятий для учебных групп на семестр. Отображается в виде сетки по дням недели и времени. |
 | **Занятие** | Элемент расписания, характеризующийся предметом, временем, местом, типом (лекция/лабораторная/семинар) и преподавателем. |
 | **Очередь** | Электронный список для записи Студентов на сдачу лабораторной работы, экзамена или консультации. Создаётся Старостой. Может быть привязана к конкретному Занятию (опционально). |
-| **Слот** | Позиция студента в Очереди. Характеризуется порядковым номером и статусом (ожидание, сдал, не сдал, не явился). |
+| **Слот** | Запись студента в Очереди. Позиция в списке определяется временем записи (signed_up_at). Характеризуется статусом (ожидание, сдал, не сдал, не явился). |
 | **Статус очереди** | Состояние жизненного цикла очереди: черновик (draft) → открыта (open) → закрыта (closed) → архив (archived). |
 | **Статус слота** | Состояние записи студента в очереди: ожидание (waiting), сдал (passed), не сдал (failed), не явился (no_show). |
 
@@ -93,7 +93,7 @@
 
 1. Староста создаёт очередь на сдачу лабораторной работы (статус: `draft`)
 2. Очередь автоматически открывается в указанное время (статус: `open`)
-3. Студенты записываются, получая позиции 1, 2, 3...
+3. Студенты записываются в очередь. Их место определяется временем записи (кто раньше записался, тот и выше в списке).
 4. Очередь закрывается (статус: `closed`)
 5. На занятии староста отмечает: кто сдал (`passed`), не сдал (`failed`), не пришёл (`no_show`)
 6. Староста архивирует очередь (статус: `archived`)
@@ -263,7 +263,6 @@
                        │ id (PK)                             │
                        │ queue_id (FK) ──────────────────────┼──► queues
                        │ student_id (FK) ────────────────────┼──► users
-                       │ position                            │
                        │ status (waiting|passed|failed|no_show)
                        │ signed_up_at, version               │
                        └─────────────────────────────────────┘
@@ -354,9 +353,8 @@
 | `id` | UUID | Первичный ключ |
 | `queue_id` | UUID | FK на queues, NOT NULL |
 | `student_id` | UUID | FK на users, NOT NULL |
-| `position` | INT | Порядковый номер (1, 2, 3...), NOT NULL |
 | `status` | ENUM | `waiting`, `passed`, `failed`, `no_show` |
-| `signed_up_at` | TIMESTAMP | Время записи |
+| `signed_up_at` | TIMESTAMP | Время записи. Используется для сортировки. |
 | `version` | INT | Для optimistic locking, default 1 |
 
 #### **3.3.4. Ограничения целостности**
@@ -366,12 +364,8 @@
 ALTER TABLE queue_slots 
 ADD CONSTRAINT uq_queue_student UNIQUE (queue_id, student_id);
 
--- Позиция в очереди уникальна
-ALTER TABLE queue_slots 
-ADD CONSTRAINT uq_queue_position UNIQUE (queue_id, position);
-
 -- Индексы для производительности
-CREATE INDEX idx_slots_queue_position ON queue_slots (queue_id, position);
+CREATE INDEX idx_slots_queue_timestamp ON queue_slots (queue_id, signed_up_at);
 CREATE INDEX idx_queues_group_status ON queues (group_id, status);
 CREATE INDEX idx_lessons_group_date ON lessons (group_id, starts_at);
 ```
@@ -380,7 +374,7 @@ CREATE INDEX idx_lessons_group_date ON lessons (group_id, starts_at);
 
 **Проблема:** Два студента одновременно записываются на последний доступный слот.
 
-**Решение:** Транзакция + SELECT FOR UPDATE + уникальные индексы.
+**Решение:** Транзакция + SELECT FOR UPDATE.
 
 **Алгоритм записи:**
 
@@ -389,36 +383,35 @@ CREATE INDEX idx_lessons_group_date ON lessons (group_id, starts_at);
    SET statement_timeout = '5s';
 
 2. Проверить статус очереди:
-   SELECT status, max_size, version FROM queues
+   SELECT status, max_size FROM queues
    WHERE id = ? AND status = 'open'
    FOR UPDATE
    → если не найдено: ROLLBACK, ошибка QUEUE_CLOSED
 
-3. Проверить, не записан ли уже:
+3. Проверить, не записан ли уже студент:
    SELECT id FROM queue_slots
    WHERE queue_id = ? AND student_id = ?
    → если найдено: ROLLBACK, ошибка ALREADY_EXISTS
 
-4. Получить следующую позицию и проверить лимит:
-   SELECT COUNT(*) as cnt, COALESCE(MAX(position), 0) + 1 as next_pos
-   FROM queue_slots
+4. Проверить лимит слотов:
+   SELECT COUNT(*) as cnt FROM queue_slots
    WHERE queue_id = ?
    FOR UPDATE
    → если cnt >= max_size (и max_size IS NOT NULL): 
      ROLLBACK, ошибка QUEUE_FULL
 
-5. INSERT INTO queue_slots (id, queue_id, student_id, position, status, signed_up_at)
-   VALUES (gen_random_uuid(), ?, ?, next_pos, 'waiting', NOW())
+5. INSERT INTO queue_slots (id, queue_id, student_id, status, signed_up_at)
+   VALUES (gen_random_uuid(), ?, ?, 'waiting', NOW())
+   RETURNING id, signed_up_at;
 
 6. COMMIT
-   → Вернуть slot_id, position
+   → На основе `signed_up_at` можно вычислить позицию для ответа клиенту.
 ```
 
 **Обработка конфликтов:**
+* Нарушение uq_queue_student → ошибка "Вы уже записаны".
+* Timeout транзакции → ошибка "Сервер перегружен, попробуйте позже".
 
-* Нарушение `uq_queue_position` → повторить транзакцию (до 3 попыток)
-* Нарушение `uq_queue_student` → ошибка "Вы уже записаны"
-* Timeout транзакции → ошибка "Сервер перегружен, попробуйте позже"
 
 #### **3.3.6. Машина состояний очереди**
 
@@ -448,8 +441,7 @@ CREATE INDEX idx_lessons_group_date ON lessons (group_id, starts_at);
 **При удалении слота:**
 
 1. Удалить запись из `queue_slots`
-2. Пересчитать позиции: `UPDATE queue_slots SET position = position - 1 WHERE queue_id = ? AND position > ?`
-3. Всё в одной транзакции
+2. Всё в одной транзакции
 
 **Ограничения:**
 
@@ -482,14 +474,11 @@ COMMIT;
 BEGIN TRANSACTION;
 
 -- 1. Проверить статусы очередей
+--    (target должна быть 'draft', source - 'closed' или 'archived')
 SELECT status, group_id, subject_id FROM queues WHERE id = :target_queue_id;
--- target должна быть в статусе 'draft'
+SELECT status FROM queues WHERE id = :source_queue_id;  
 
-SELECT status, group_id, subject_id FROM queues WHERE id = :source_queue_id;  
--- source должна быть в статусе 'closed' или 'archived'
--- group_id и subject_id должны совпадать
-
--- 2. Получить неуспевших, которых ещё нет в целевой очереди
+-- 2. Получить список неуспевших студентов, которых еще нет в целевой очереди
 SELECT student_id FROM queue_slots 
 WHERE queue_id = :source_queue_id 
   AND status IN ('failed', 'no_show')
@@ -497,14 +486,13 @@ WHERE queue_id = :source_queue_id
     SELECT student_id FROM queue_slots WHERE queue_id = :target_queue_id
   );
 
--- 3. Сдвинуть существующие слоты
-UPDATE queue_slots 
-SET position = position + :transfer_count
-WHERE queue_id = :target_queue_id;
-
--- 4. Вставить перенесённых с позициями 1..N
-INSERT INTO queue_slots (id, queue_id, student_id, position, status, signed_up_at)
-VALUES ...;
+-- 3. Вставить перенесённых в новую очередь
+--    Они будут добавлены в конец в соответствии со временем записи.
+INSERT INTO queue_slots (id, queue_id, student_id, status, signed_up_at)
+SELECT gen_random_uuid(), :target_queue_id, s.student_id, 'waiting', now()
+FROM (
+  -- students_to_transfer --
+) s;
 
 COMMIT;
 ```
