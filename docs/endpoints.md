@@ -123,7 +123,7 @@ Response (200 OK):
 }
 ```
 
-\+ Set-Cookie: `refresh_token=...; HttpOnly; Secure; SameSite=Strict; Path=/api/auth; Max-Age=604800`
+\+ Set-Cookie: `refresh_token=...; HttpOnly; Secure; SameSite=Strict; Path=/auth; Max-Age=604800`
 
 #### **3.5.4. Эндпоинты расписания**
 
