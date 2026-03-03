@@ -43,7 +43,7 @@
 ## Авторы проекта
 | Фотография | Имя | Роль в проекте | Связь |
 | :---: | :--- | :--- | :--- |
-| <img src="./docs/team/Nikita_Mogilin.jpg" width="100" alt="Фото Никиты Могилина"> | **Могилин Никита** | Backend-разработчик (Go) | [GitHub](https://github.com/Nok1o) |
-| <img src="./docs/team/Ilya_Proshin.jpg" width="100" alt="Фото Прошина Ильи"> | **Прошин Илья** | Backend-разработчик (Go) | [GitHub](https://github.com/Kukushenok) |
-| <img src="./docs/team/Lomovskaya_Sophia.jpg" width="100" alt="Фото Ломовской Софьи"> | **Ломовская Софья** | Backend-разработчик (Go) | [GitHub](https://github.com/sofjabo) |
-| <img src="./docs/team/Lukyanenko_Vladislav.jpg" width="100" alt="Фото Лукьяненко Владислава"> | **Лукьяненко Владислав** | Backend-разработчик (Go) | [GitHub](https://github.com/Vladragone) |
+| <img src="./docs/team/Nikita_Mogilin.jpg" width="100" alt="Фото Никиты Могилина"> | **Могилин Никита** | Backend-разработчик (Go), Тестировщик, DevOps, TechLead | [GitHub](https://github.com/Nok1o) |
+| <img src="./docs/team/Ilya_Proshin.jpg" width="100" alt="Фото Прошина Ильи"> | **Прошин Илья** | Backend-разработчик (Go), Тестировщик, DevOps | [GitHub](https://github.com/Kukushenok) |
+| <img src="./docs/team/Lomovskaya_Sophia.jpg" width="100" alt="Фото Ломовской Софьи"> | **Ломовская Софья** | Тестировщик, DevOps, Project Manager | [GitHub](https://github.com/sofjabo) |
+| <img src="./docs/team/Lukyanenko_Vladislav.jpg" width="100" alt="Фото Лукьяненко Владислава"> | **Лукьяненко Владислав** | Frontend-разработчик, Аналитик, Дизайнер | [GitHub](https://github.com/Vladragone) |
