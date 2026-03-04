@@ -217,56 +217,8 @@
 
 #### **3.3.1. ER-диаграмма**
 
-```
-┌──────────────┐       ┌──────────────┐       ┌──────────────┐
-│    users     │       │    groups    │       │  subjects    │
-├──────────────┤       ├──────────────┤       ├──────────────┤
-│ id (PK)      │       │ id (PK)      │       │ id (PK)      │
-│ email        │       │ name         │       │ name         │
-│ password_hash│   ┌──►│ faculty      │       └──────┬───────┘
-│ first_name   │   │   └──────────────┘              │
-│ last_name    │   │                                 │
-│ role         │   │   ┌──────────────┐              │
-│ group_id (FK)├───┘   │   teachers   │              │
-│ is_blocked   │       ├──────────────┤              │
-│ created_at   │       │ id (PK)      │              │
-└──────┬───────┘       │ full_name    │              │
-       │               └──────┬───────┘              │
-       │                      │                      │
-       │               ┌──────┴──────────────────────┴───────┐
-       │               │              lessons                │
-       │               ├─────────────────────────────────────┤
-       │               │ id (PK)                             │
-       │               │ group_id (FK) ──────────────────────┼──► groups
-       │               │ subject_id (FK) ────────────────────┼──► subjects
-       │               │ teacher_id (FK) ────────────────────┼──► teachers
-       │               │ room_id (FK, nullable) ─────────────┼──► rooms
-       │               │ type (lecture|lab|seminar)          │
-       │               │ starts_at, ends_at                  │
-       │               └──────────────────┬──────────────────┘
-       │                                  │
-       │               ┌──────────────────┴──────────────────┐
-       │               │              queues                 │
-       │               ├─────────────────────────────────────┤
-       │               │ id (PK)                             │
-       │               │ group_id (FK) ──────────────────────┼──► groups
-       │               │ subject_id (FK) ────────────────────┼──► subjects
-       │               │ lesson_id (FK, nullable) ───────────┼──► lessons
-       │               │ created_by (FK) ────────────────────┼──► users
-       │               │ opens_at, closes_at                 │
-       │               │ max_size, status, version           │
-       │               └──────────────────┬──────────────────┘
-       │                                  │
-       │               ┌──────────────────┴──────────────────┐
-       └──────────────►│           queue_slots               │
-                       ├─────────────────────────────────────┤
-                       │ id (PK)                             │
-                       │ queue_id (FK) ──────────────────────┼──► queues
-                       │ student_id (FK) ────────────────────┼──► users
-                       │ status (waiting|passed|failed|no_show)
-                       │ signed_up_at, version               │
-                       └─────────────────────────────────────┘
-```
+[ER-диаграмма системы](diagrams/images/ERStudAsssistant.svg)
+<img src=diagrams/images/ERStudAsssistant.svg>
 
 #### **3.3.2. Основные таблицы**
 
