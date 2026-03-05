@@ -1,0 +1,234 @@
+flowchart LR
+%% -------------------- Ћ≈√≈Ќƒј --------------------
+
+%% я ќ–№
+START(( ))
+
+%% Ћ≈√≈Ќƒј
+subgraph Legend["Ћегенда"]
+L1["Frontend"]
+L2["Backend"]
+L3["DevOps"]
+L4["ќбщее"]
+end
+
+%% прив€зка к началу
+START --- L1
+START --- L2
+START --- L3
+START --- L4
+START --- T01
+%% скрываем линии
+linkStyle 0 stroke-width:0px
+linkStyle 1 stroke-width:0px
+linkStyle 2 stroke-width:0px
+linkStyle 3 stroke-width:0px
+linkStyle 4 stroke-width:0px
+
+class L1 frontend;
+class L2 backend;
+class L3 devops;
+class L4 general;
+classDef hidden fill:transparent,stroke:transparent,color:transparent;
+class START hidden;
+%% -------------------- «јƒј„» --------------------
+
+T01["»нициализаци€ проекта
+Ч
+T01 | 1 недел€
+Ч
+Ѕазова€ настройка репозитори€"]
+
+T02["Ќастройка линтеров (FE + BE)
+Ч
+T02 | 1 недел€
+Ч
+ESLint, backend линтеры"]
+
+T03["CI + neuroreview
+Ч
+T03 | 1 недел€
+Ч
+Pipeline, автопроверки PR"]
+
+T04["‘инализаци€ требований (MVP)
+Ч
+T04 | 1 недел€
+Ч
+√раницы проекта, use-case-ы"]
+
+T05["ѕроектирование архитектуры системы
+Ч
+T05 | 1 недел€
+Ч
+ќсновные компоненты и технологии"]
+
+T06["Ѕазова€ документаци€
+Ч
+T06 | 2 недели
+Ч
+README
+ER-модель
+доменные сущности
+архитектура"]
+
+T07["‘инализаци€ настройки рабочего пространства
+Ч
+T07 | 1 день
+Ч
+√отовность среды разработки"]
+
+T08["ƒизайн в Figma
+Ч
+T08 | 1 недел€
+Ч
+UX flow и макеты"]
+
+T09["ѕроектирование API
+Ч
+T09 | 1 недел€
+Ч
+‘иксаци€ контрактов"]
+
+T10["ќписание интерфейсов в коде
+Ч
+T10 | 1 недел€
+Ч
+ѕорты Clean Architecture"]
+
+T11["Ќастройка базы данных
+Ч
+T11 | 1 недел€
+Ч
+ќписание таблиц PostgreSQL"]
+
+T12["–азработка компонентов доступа к данным
+Ч
+T12 | 2 недели
+Ч
+Repositories + CRUD"]
+
+T13["–азработка компонентов бизнес-логики
+Ч
+T13 | 2 недели
+Ч
+Use cases"]
+
+T14["Unit-тесты backend
+Ч
+T14 | 1 недел€
+Ч
+“естирование бизнес-логики"]
+
+T15["Mock API дл€ фронтенда
+Ч
+T15 | 1 недел€
+Ч
+ онтрактный mock"]
+
+T16["–азработка фронтенда
+Ч
+T16 | 3 недели
+Ч
+React UI"]
+
+T17["»нтеграци€ фронтенда с API
+Ч
+T17 | 1 недел€
+Ч
+«амена mock"]
+
+T18["‘ункциональное тестирование фронтенда
+Ч
+T18 | 1 недел€
+Ч
+Use-case тестирование"]
+
+T19["DevOps: окружение и деплой
+Ч
+T19 | 2 недели
+Ч
+Prod + CI deployment"]
+
+T20["»нтеграционное тестирование
+Ч
+T20 | 1 недел€
+Ч
+FE + BE"]
+
+T21["‘инализаци€ документации
+Ч
+T21 | 1 недел€
+Ч
+API + deployment guide"]
+
+T22["—опровождение проекта
+Ч
+T22 | 2 недели
+Ч
+»справление багов"]
+
+%% -------------------- «ј¬»—»ћќ—“» --------------------
+
+T05 --> T02
+T02 --> T03
+
+T01 --> T04
+T04 --> T05
+T05 --> T06
+
+%% workspace ready
+
+T03 --> T07
+T06 --> T07
+
+%% проектирование
+
+T07 --> T08
+T07 --> T09
+T07 --> T10
+
+%% backend
+
+T09 --> T13
+T10 --> T12
+T11 --> T12
+
+T07 --> T11
+
+T12 --> T14
+T13 --> T14
+
+%% frontend
+
+T09 --> T15
+T15 --> T16
+T08 --> T16
+
+T16 --> T17
+T17 --> T18
+
+%% devops
+
+T14 --> T19
+
+%% интеграци€
+
+T18 --> T20
+T19 --> T20
+
+T20 --> T21
+T21 --> T22
+
+
+%% -------------------- ÷¬≈“ј --------------------
+
+classDef frontend fill:#cce5ff,stroke:#1f4e79,stroke-width:1px;
+classDef backend fill:#d5f5e3,stroke:#1e8449,stroke-width:1px;
+classDef devops fill:#fdebd0,stroke:#af601a,stroke-width:1px;
+classDef general fill:#e5e7e9,stroke:#626567,stroke-width:1px;
+
+class T08,T15,T16,T17,T18 frontend;
+class T09,T10,T11,T12,T13,T14 backend;
+class T02,T03,T19 devops;
+class T01,T04,T05,T06,T07,T20,T21,T22 general;
