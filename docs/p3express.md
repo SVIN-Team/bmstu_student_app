@@ -1,4 +1,4 @@
-# P3.express — BMSTU Student App
+# P3.express — StudHub
 
 ## Подготовка проекта
 
