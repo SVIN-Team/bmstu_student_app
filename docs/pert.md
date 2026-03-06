@@ -1,9 +1,9 @@
 #### **PERT-диаграмма**
 
-[ER-диаграмма системы (слева направо)](diagrams/images/PERT_LR.svg)
+[PERT-диаграмма проекта (слева направо)](diagrams/images/PERT_LR.svg)
 <img src=diagrams/images/PERT_LR.svg>
 
-[ER-диаграмма системы (сверху вниз)](diagrams/images/PERT_TD.svg)
+[PERT-диаграмма проекта (сверху вниз)](diagrams/images/PERT_TD.svg)
 <img src=diagrams/images/PERT_TD.svg>
 
 
