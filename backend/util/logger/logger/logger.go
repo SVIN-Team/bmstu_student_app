@@ -63,7 +63,6 @@ func ContextWithRequestID(ctx context.Context, id string) context.Context {
 func InitLogger(levelStr string, out io.Writer) {
 	logrus.SetOutput(out)
 	logrus.SetFormatter(&CustomFormatter{})
-	logrus.SetReportCaller(true)
 
 	level, err := logrus.ParseLevel(levelStr)
 	if err != nil {
