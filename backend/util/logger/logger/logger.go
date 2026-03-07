@@ -62,6 +62,8 @@ func ContextWithRequestID(ctx context.Context, id string) context.Context {
 // InitLogger инициализирует глобальный логгер logrus.
 func InitLogger(levelStr string, out io.Writer) {
 	logrus.SetOutput(out)
+	logrus.SetFormatter(&CustomFormatter{})
+	logrus.SetReportCaller(true)
 
 	level, err := logrus.ParseLevel(levelStr)
 	if err != nil {
@@ -69,19 +71,15 @@ func InitLogger(levelStr string, out io.Writer) {
 		logrus.Warnf("Некорректный уровень логирования: '%s'. Используется 'info'.", levelStr)
 	}
 	logrus.SetLevel(level)
-	logrus.SetFormatter(&CustomFormatter{})
-	logrus.SetReportCaller(true)
 }
 
 // getEntry - создает запись лога, обогащенную полями из контекста и информацией о вызывающем.
 func getEntry(ctx context.Context) *logrus.Entry {
 	entry := logrus.NewEntry(logrus.StandardLogger())
 
-	if entry.Logger.ReportCaller {
-		// Пропускаем 4 фрейма: Callers, getCaller, getEntry и саму функцию логирования (e.g., Infof)
-		if caller := getCaller(4); caller != nil {
-			entry = entry.WithField("caller", fmt.Sprintf("%s:%d", path.Base(caller.File), caller.Line))
-		}
+	// Пропускаем 4 фрейма: Callers, getCaller, getEntry и саму функцию логирования (e.g., Infof)
+	if caller := getCaller(4); caller != nil {
+		entry = entry.WithField("caller", fmt.Sprintf("%s:%d", path.Base(caller.File), caller.Line))
 	}
 
 	if id, ok := ctx.Value(requestIDKey).(string); ok {
@@ -97,9 +95,13 @@ func getCaller(skip int) *runtime.Frame {
 	depth := runtime.Callers(skip, pcs)
 	frames := runtime.CallersFrames(pcs[:depth])
 
-	for f, more := frames.Next(); more; f, more = frames.Next() {
+	for {
+		f, more := frames.Next()
 		if !strings.Contains(f.File, "sirupsen/logrus") && !strings.Contains(f.File, "logger/logger.go") {
 			return &f
+		}
+		if !more {
+			break
 		}
 	}
 	return nil
