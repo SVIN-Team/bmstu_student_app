@@ -15,17 +15,17 @@ const (
 )
 
 type Queue struct {
-	ID        uuid.UUID
-	GroupID   uuid.UUID
-	SubjectID uuid.UUID
-	LessonID  uuid.UUID
-	CreatedBy uuid.UUID
-	CreatedAt time.Time
-	OpensAt   time.Time
-	ClosesAt  *time.Time
-	MaxSize   *uint32
-	Status    QueueStatus
-	Slots     []*QueueSlot
+	ID             uuid.UUID
+	GroupID        uuid.UUID
+	SubjectID      uuid.UUID
+	LessonID       uuid.UUID
+	CreatedByUserID uuid.UUID
+	CreatedAt      time.Time
+	OpensAt        time.Time
+	ClosesAt       *time.Time
+	MaxSize        *uint32
+	Status         QueueStatus
+	Slots          []*QueueSlot
 }
 
 type SlotStatus string
