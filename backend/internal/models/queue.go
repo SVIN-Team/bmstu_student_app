@@ -38,9 +38,9 @@ const (
 )
 
 type QueueSlot struct {
-	ID        uuid.UUID
-	QueueID   uuid.UUID
-	StudentID uuid.UUID
-	Status    SlotStatus
-	SignUpAt  time.Time
+	ID         uuid.UUID
+	QueueID    uuid.UUID
+	StudentID  uuid.UUID
+	Status     SlotStatus
+	SignedUpAt time.Time
 }
