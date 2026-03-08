@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -94,10 +95,12 @@ func getCaller(skip int) *runtime.Frame {
 	pcs := make([]uintptr, 25)
 	depth := runtime.Callers(skip, pcs)
 	frames := runtime.CallersFrames(pcs[:depth])
+	pathSep := string(filepath.Separator)
 
 	for {
 		f, more := frames.Next()
-		if !strings.Contains(f.File, "sirupsen/logrus") && !strings.Contains(f.File, "logger/logger.go") {
+		if !strings.Contains(f.File, "sirupsen"+pathSep+"logrus") &&
+			!strings.Contains(f.File, "logger"+pathSep+"logger.go") {
 			return &f
 		}
 		if !more {
