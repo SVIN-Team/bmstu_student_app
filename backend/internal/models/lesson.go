@@ -15,11 +15,11 @@ const (
 )
 
 type Lesson struct {
-	Id         uuid.UUID
-	GroupId    uuid.UUID
-	TeacherId  uuid.UUID
-	SubjectId  uuid.UUID
-	RoomId     uuid.UUID
+	ID         uuid.UUID
+	GroupID    uuid.UUID
+	TeacherID  uuid.UUID
+	SubjectID  uuid.UUID
+	RoomID     uuid.UUID
 	LessonType LessonType
 	StartsAt   time.Time
 	EndsAt     time.Time
