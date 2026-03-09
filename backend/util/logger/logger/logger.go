@@ -35,22 +35,21 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("\x1b[90m%s\x1b[0m ", entry.Time.Format(time.TimeOnly)))
+	_, _ = fmt.Fprintf(&b, "\x1b[90m%s\x1b[0m ", entry.Time.Format(time.TimeOnly))
 
 	if caller, ok := entry.Data["caller"]; ok {
-		b.WriteString(fmt.Sprintf(" \x1b[37m(%s)\x1b[0m ", caller))
+		_, _ = fmt.Fprintf(&b, " \x1b[37m(%s)\x1b[0m ", caller)
 	}
 
 	if requestID, ok := entry.Data["request_id"]; ok {
-		b.WriteString(fmt.Sprintf("\x1b[35m[%s]\x1b[0m ", requestID))
+		_, _ = fmt.Fprintf(&b, "\x1b[35m[%s]\x1b[0m ", requestID)
 	} else {
-		b.WriteString(fmt.Sprintf("\x1b[35m[%s]\x1b[0m ", "unknown request-id"))
+		_, _ = fmt.Fprintf(&b, "\x1b[35m[%s]\x1b[0m ", "unknown request-id")
 	}
 
 	levelText := strings.ToUpper(entry.Level.String())
-	b.WriteString(fmt.Sprintf("\x1b[%dm[%s]\x1b[0m", levelColor, levelText))
-
-	b.WriteString(fmt.Sprintf(" %s", entry.Message))
+	message := fmt.Sprintf("\x1b[%dm[%s]\x1b[0m %s", levelColor, levelText, entry.Message)
+	b.WriteString(message)
 
 	b.WriteByte('\n')
 
