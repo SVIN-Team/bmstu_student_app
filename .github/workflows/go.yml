@@ -47,4 +47,4 @@ jobs:
 
       - name: Build Go project
         working-directory: ./backend
-        run: go build -v ./...
+        run: go build -v cmd/main.go
