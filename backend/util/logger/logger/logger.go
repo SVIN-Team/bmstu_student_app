@@ -35,7 +35,7 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("\x1b[90m%s\x1b[0m ", entry.Time.Format(time.TimeOnly)))
+	_, _ = fmt.Fprintf(&b, "\x1b[90m%s\x1b[0m ", entry.Time.Format(time.TimeOnly))
 
 	if caller, ok := entry.Data["caller"]; ok {
 		_, _ = fmt.Fprintf(&b, " \x1b[37m(%s)\x1b[0m ", caller)
