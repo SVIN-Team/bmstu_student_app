@@ -8,14 +8,24 @@ CREATE OR REPLACE PROCEDURE transfer_headman(
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_role user_role;
     v_group_id UUID;
+    v_target_role user_role;
+    v_target_group UUID;
     v_blocked BOOLEAN;
-    v_current_group UUID;
 BEGIN
+    -- Найти группу текущего старосты
+    SELECT id
+    INTO v_group_id
+    FROM groups
+    WHERE headman_id = p_current_headman_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'User % is not a headman', p_current_headman_id;
+    END IF;
+
     -- Получить данные нового кандидата
     SELECT role, group_id, is_blocked
-    INTO v_role, v_group_id, v_blocked
+    INTO v_target_role, v_target_group, v_blocked
     FROM users
     WHERE id = p_to_user_id;
 
@@ -23,23 +33,12 @@ BEGIN
         RAISE EXCEPTION 'User % not found', p_to_user_id;
     END IF;
 
-    -- Получить группу текущего старосты
-    SELECT group_id
-    INTO v_current_group
-    FROM users
-    WHERE id = p_current_headman_id
-      AND role = 'headman';
-
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Current headman % not found or not headman', p_current_headman_id;
-    END IF;
-
     -- Проверки
-    IF v_role <> 'student' THEN
+    IF v_target_role <> 'student' THEN
         RAISE EXCEPTION 'Target user must have role student';
     END IF;
 
-    IF v_group_id <> v_current_group THEN
+    IF v_target_group <> v_group_id THEN
         RAISE EXCEPTION 'Target user must belong to the same group';
     END IF;
 
@@ -47,12 +46,16 @@ BEGIN
         RAISE EXCEPTION 'Target user is blocked';
     END IF;
 
-    -- Снять роль старосты
+    -- Обновить старосту группы
+    UPDATE groups
+    SET headman_id = p_to_user_id
+    WHERE id = v_group_id;
+
+    -- Обновить роли
     UPDATE users
     SET role = 'student'
     WHERE id = p_current_headman_id;
 
-    -- Назначить нового
     UPDATE users
     SET role = 'headman'
     WHERE id = p_to_user_id;

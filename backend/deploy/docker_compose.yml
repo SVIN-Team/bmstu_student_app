@@ -5,9 +5,9 @@ services:
     restart: unless-stopped
 
     environment:
-      POSTGRES_DB: studhub_db
-      POSTGRES_USER: studhub_admin
-      POSTGRES_PASSWORD: SuperSecurePassword1
+      POSTGRES_DB: ${STUDHUB_POSTGRES_DB}
+      POSTGRES_USER: ${STUDHUB_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${STUDHUB_POSTGRES_PASSWORD}
 
     ports:
       - "5432:5432"
