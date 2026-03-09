@@ -5,32 +5,13 @@
 
 ## Быстрый старт (локальный запуск)
 
-1.  **Клонируйте репозиторий:**
-    ```bash
-    git clone https://github.com/your-org/your-repo.git
-    cd your-repo
-    ```
-
-2.  **Настройте переменные окружения:**
-    Скопируйте `.env.example` в `.env` и заполните необходимые значения.
-    ```bash
-    cp .env.example .env
-    ```
-
-3.  **Запустите проект с помощью Docker:**
-    ```bash
-    docker-compose up --build
-    ```
-
-4.  Приложение будет доступно по адресам:
-    *   **Frontend:** `http://localhost:3000`
-    *   **Backend API:** `http://localhost:8080/api/v1`
+TODO
 
 ## Ключевые ссылки
 
 *   **Трекер задач (Issues):** https://github.com/orgs/SVIN-Team/projects/2/views/1
-*   **Staging окружение:** `https://staging.example.com`
-*   **Production окружение:** `https://example.com`
+*   **Staging окружение:** TODO
+*   **Production окружение:** TODO
 
 ## Документация проекта
 
