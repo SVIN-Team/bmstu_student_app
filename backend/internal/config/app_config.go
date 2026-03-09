@@ -1,13 +1,15 @@
 package config
 
 import (
+	"context"
 	"os"
+	"stud_hub/util/logger/logger"
 
 	"gopkg.in/yaml.v3"
 )
 
 type ApplicationConfig struct {
-	LoggerConfig `yaml:"logger"`
+	LoggerConfig LoggerConfig `yaml:"logger"`
 }
 
 func LoadApplicationConfig(path string) (*ApplicationConfig, error) {
@@ -16,7 +18,12 @@ func LoadApplicationConfig(path string) (*ApplicationConfig, error) {
 	if err != nil {
 		return cfg, err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err = file.Close()
+		if err != nil {
+			logger.Errorf(context.Background(), "Error while closing config file: %s", err)
+		}
+	}(file)
 
 	dec := yaml.NewDecoder(file)
 	dec.KnownFields(true) // строгий режим

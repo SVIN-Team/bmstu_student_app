@@ -48,9 +48,8 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 
 	levelText := strings.ToUpper(entry.Level.String())
-	b.WriteString(fmt.Sprintf("\x1b[%dm[%s]\x1b[0m", levelColor, levelText))
-
-	b.WriteString(fmt.Sprintf(" %s", entry.Message))
+	message := fmt.Sprintf("\x1b[%dm[%s]\x1b[0m %s", levelColor, levelText, entry.Message)
+	b.WriteString(message)
 
 	b.WriteByte('\n')
 
