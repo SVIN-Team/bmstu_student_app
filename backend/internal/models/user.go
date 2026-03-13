@@ -15,13 +15,13 @@ const (
 )
 
 type User struct {
-	ID           uuid.UUID
-	Email        string
-	PasswordHash string
-	FirstName    string
-	LastName     string
-	Patronymic   string
-	Role         RoleType
-	GroupID      uuid.UUID
-	CreatedAt    time.Time
+	Id         uuid.UUID
+	Email      string
+	PswHash    string
+	FirstName  string
+	LastName   string
+	Patronymic string
+	Role       RoleType
+	GroupId    uuid.UUID
+	CreatedAt  time.Time
 }

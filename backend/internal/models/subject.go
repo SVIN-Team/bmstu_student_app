@@ -3,6 +3,6 @@ package models
 import "github.com/google/uuid"
 
 type Subject struct {
-	ID   uuid.UUID
+	Id   uuid.UUID
 	Name string
 }

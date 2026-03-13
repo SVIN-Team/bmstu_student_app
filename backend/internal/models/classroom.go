@@ -2,7 +2,7 @@ package models
 
 import "github.com/google/uuid"
 
-type Classroom struct {
-	ID   uuid.UUID
+type ClassRoom struct {
+	Id   uuid.UUID
 	Name string
 }
