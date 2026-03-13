@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 	"stud_hub/internal/config"
-	"stud_hub/util/logger/logger"
+	"stud_hub/util/logger"
 
 	"github.com/google/uuid"
 )

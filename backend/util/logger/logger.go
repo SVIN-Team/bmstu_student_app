@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
+	"os"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -18,6 +20,8 @@ type CustomFormatter struct{}
 type ctxKey string
 
 const requestIDKey ctxKey = "requestID"
+
+var loggerInitialized = false
 
 // Format форматирует запись лога.
 func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
@@ -63,6 +67,7 @@ func ContextWithRequestID(ctx context.Context, id string) context.Context {
 
 // InitLogger инициализирует глобальный логгер logrus.
 func InitLogger(levelStr string, out io.Writer) {
+	loggerInitialized = true
 	logrus.SetOutput(out)
 	logrus.SetFormatter(&CustomFormatter{})
 
@@ -76,6 +81,10 @@ func InitLogger(levelStr string, out io.Writer) {
 
 // getEntry - создает запись лога, обогащенную полями из контекста и информацией о вызывающем.
 func getEntry(ctx context.Context) *logrus.Entry {
+	if !loggerInitialized {
+		log.Printf("[WARN] Application logger was not initialized, defaulting to WARN level and stdout")
+		InitLogger("warn", os.Stdout)
+	}
 	entry := logrus.NewEntry(logrus.StandardLogger())
 
 	// Пропускаем 4 фрейма: Callers, getCaller, getEntry и саму функцию логирования (e.g., Infof)
