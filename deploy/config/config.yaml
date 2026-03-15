@@ -1,2 +1,6 @@
 logger:
   level: DEBUG
+
+auth:
+  access_life_time: 30m
+  refresh_life_time: 30d
