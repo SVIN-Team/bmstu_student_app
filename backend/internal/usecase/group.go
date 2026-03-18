@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	apperrors "stud_hub/internal/errors"
 	"stud_hub/internal/models"
@@ -46,8 +47,13 @@ func (g *GroupUseCase) GetByID(ctx context.Context, id uuid.UUID) (models.Group,
 }
 
 func (g *GroupUseCase) Create(ctx context.Context, group models.Group) (uuid.UUID, error) {
-	existing, _ := g.groupRepo.GetByName(ctx, group.Name)
-	if existing.ID != uuid.Nil {
+	existing, err := g.groupRepo.GetByName(ctx, group.Name)
+	if err != nil {
+		if !errors.Is(err, apperrors.ErrGroupNotFound) {
+			logger.Errorf(ctx, "failed to get group by name: %v", err)
+			return uuid.Nil, apperrors.ErrInternalServer
+		}
+	} else if existing.ID != uuid.Nil {
 		return uuid.Nil, apperrors.ErrGroupAlreadyExists
 	}
 
