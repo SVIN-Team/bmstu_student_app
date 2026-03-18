@@ -1,12 +1,8 @@
-// internal/usecase/schedule_usecase.go
 package usecase
 
 import (
 	"context"
-	"encoding/csv"
 	"fmt"
-	"io"
-	"strings"
 	"time"
 
 	apperrors "stud_hub/internal/errors"
@@ -207,39 +203,14 @@ type ImportResult struct {
 	Errors       []string
 }
 
-// ImportScheduleFromCSV импортирует расписание
-// Формат CSV: GroupName;SubjectName;TeacherLastName;TeacherFirstName;TeacherPatronymic;Room;LessonType;StartsAt;EndsAt
-func (s *ScheduleUseCase) ImportScheduleFromCSV(ctx context.Context, reader io.Reader, replaceExisting bool) (ImportResult, error) {
-	result := ImportResult{}
-
-	csvReader := csv.NewReader(reader)
-	csvReader.Comma = ';'
-	csvReader.TrimLeadingSpace = true
-
-	// Пропускаем заголовок
-	if _, err := csvReader.Read(); err != nil {
-		return result, apperrors.ErrInvalidImportFormat
-	}
-
+func (s *ScheduleUseCase) ImportSchedule(ctx context.Context, rows []models.ScheduleImportRow, replaceExisting bool) (ImportResult, error) {
+	result := ImportResult{TotalRows: len(rows)}
 	var lessons []models.Lesson
 	groupDateRanges := make(map[uuid.UUID]*dateRange)
 
-	lineNum := 1
-	for {
-		lineNum++
-		record, err := csvReader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			result.Errors = append(result.Errors, fmt.Sprintf("line %d: %v", lineNum, err))
-			result.ErrorCount++
-			continue
-		}
-
-		result.TotalRows++
-
-		lesson, err := s.parseScheduleRow(ctx, record, lineNum)
+	for _, row := range rows {
+		// Преобразуем строку-контракт в доменную модель Lesson
+		lesson, err := s.processImportRow(ctx, row)
 		if err != nil {
 			result.Errors = append(result.Errors, err.Error())
 			result.ErrorCount++
@@ -248,87 +219,69 @@ func (s *ScheduleUseCase) ImportScheduleFromCSV(ctx context.Context, reader io.R
 
 		lessons = append(lessons, lesson)
 
+		// Собираем диапазоны дат для удаления, если нужно
 		if replaceExisting {
 			updateDateRange(groupDateRanges, lesson.GroupID, lesson.StartsAt, lesson.EndsAt)
 		}
 	}
 
-	if len(lessons) == 0 {
+	if result.ErrorCount > 0 {
 		return result, apperrors.ErrImportFailed
 	}
 
-	// Удаляем существующие занятия
+	if len(lessons) == 0 {
+		// Если после валидации не осталось ни одного занятия для вставки
+		return result, nil
+	}
+
+	// Удаляем существующие занятия в нужных диапазонах
 	if replaceExisting {
 		for groupID, dr := range groupDateRanges {
 			deleted, _ := s.lessonRepo.DeleteByGroupAndDateRange(ctx, groupID, dr.from, dr.to)
-			logger.Infof(ctx, "deleted %d lessons for group %s", deleted, groupID)
+			logger.Infof(ctx, "deleted %d existing lessons for group %s", deleted, groupID)
 		}
 	}
 
 	// Массовая вставка
 	inserted, err := s.lessonRepo.BulkCreate(ctx, lessons)
 	if err != nil {
-		logger.Errorf(ctx, "failed to bulk create: %v", err)
-		return result, apperrors.ErrImportFailed
+		logger.Errorf(ctx, "failed to bulk create lessons: %v", err)
+		return result, apperrors.ErrInternalServer
 	}
 
 	result.SuccessCount = inserted
-	logger.Infof(ctx, "imported %d lessons", inserted)
+	logger.Infof(ctx, "successfully imported %d lessons", inserted)
 
 	return result, nil
 }
 
-func (s *ScheduleUseCase) parseScheduleRow(ctx context.Context, record []string, lineNum int) (models.Lesson, error) {
-	if len(record) < 9 {
-		return models.Lesson{}, fmt.Errorf("line %d: expected 9 columns, got %d", lineNum, len(record))
+func (s *ScheduleUseCase) processImportRow(ctx context.Context, row models.ScheduleImportRow) (models.Lesson, error) {
+	if !row.EndsAt.After(row.StartsAt) {
+		return models.Lesson{}, fmt.Errorf("line %d: end time must be after start time", row.LineNum)
 	}
-
-	groupName := strings.TrimSpace(record[0])
-	subjectName := strings.TrimSpace(record[1])
-	teacherLastName := strings.TrimSpace(record[2])
-	teacherFirstName := strings.TrimSpace(record[3])
-	teacherPatronymic := strings.TrimSpace(record[4])
-	roomName := strings.TrimSpace(record[5])
-	lessonType := strings.TrimSpace(record[6])
-	startsAtStr := strings.TrimSpace(record[7])
-	endsAtStr := strings.TrimSpace(record[8])
 
 	// Группа должна существовать
-	group, err := s.groupRepo.GetByName(ctx, groupName)
+	group, err := s.groupRepo.GetByName(ctx, row.GroupName)
 	if err != nil {
-		return models.Lesson{}, fmt.Errorf("line %d: group '%s' not found", lineNum, groupName)
+		return models.Lesson{}, fmt.Errorf("line %d: group '%s' not found", row.LineNum, row.GroupName)
 	}
 
-	// Предмет создаётся автоматически
-	subjectID, err := s.subjectRepo.GetOrCreateByName(ctx, subjectName)
+	// Предмет создаётся или находится автоматически
+	subjectID, err := s.subjectRepo.GetOrCreateByName(ctx, row.SubjectName)
 	if err != nil {
-		return models.Lesson{}, fmt.Errorf("line %d: subject error: %v", lineNum, err)
+		return models.Lesson{}, fmt.Errorf("line %d: subject error: %v", row.LineNum, err)
 	}
 
-	// Преподаватель создаётся автоматически
-	teacherID, err := s.teacherRepo.GetOrCreateByFullName(ctx, teacherLastName, teacherFirstName, teacherPatronymic)
+	// Преподаватель создаётся или находится автоматически
+	teacherID, err := s.teacherRepo.GetOrCreateByFullName(ctx, row.TeacherLastName, row.TeacherFirstName, row.TeacherPatronymic)
 	if err != nil {
-		return models.Lesson{}, fmt.Errorf("line %d: teacher error: %v", lineNum, err)
+		return models.Lesson{}, fmt.Errorf("line %d: teacher error: %v", row.LineNum, err)
 	}
 
-	// Аудитория создаётся автоматически
-	roomID, err := s.classroomRepo.GetOrCreateByName(ctx, roomName)
+	// Аудитория создаётся или находится автоматически
+	roomID, err := s.classroomRepo.GetOrCreateByName(ctx, row.RoomName)
 	if err != nil {
-		return models.Lesson{}, fmt.Errorf("line %d: classroom error: %v", lineNum, err)
-	}
-
-	startsAt, err := time.Parse("2006-01-02 15:04", startsAtStr)
-	if err != nil {
-		return models.Lesson{}, fmt.Errorf("line %d: invalid start time '%s'", lineNum, startsAtStr)
-	}
-
-	endsAt, err := time.Parse("2006-01-02 15:04", endsAtStr)
-	if err != nil {
-		return models.Lesson{}, fmt.Errorf("line %d: invalid end time '%s'", lineNum, endsAtStr)
-	}
-
-	if !isValidLessonType(lessonType) {
-		return models.Lesson{}, fmt.Errorf("line %d: invalid lesson type '%s'", lineNum, lessonType)
+		return models.Lesson{}, fmt.Errorf("line %d: classroom error: %v", row.LineNum, err)
 	}
 
 	return models.Lesson{
@@ -337,9 +290,9 @@ func (s *ScheduleUseCase) parseScheduleRow(ctx context.Context, record []string,
 		SubjectID:  subjectID,
 		TeacherID:  teacherID,
 		RoomID:     roomID,
-		LessonType: models.LessonType(lessonType),
-		StartsAt:   startsAt,
-		EndsAt:     endsAt,
+		LessonType: row.LessonType,
+		StartsAt:   row.StartsAt,
+		EndsAt:     row.EndsAt,
 	}, nil
 }
 
@@ -427,12 +380,4 @@ func formatTeacherName(t models.Teacher) string {
 		return t.LastName + " " + string([]rune(t.FirstName)[0]) + "." + string([]rune(t.Patronymic)[0]) + "."
 	}
 	return t.LastName + " " + string([]rune(t.FirstName)[0]) + "."
-}
-
-func isValidLessonType(t string) bool {
-	switch models.LessonType(t) {
-	case models.LessonTypeLecture, models.LessonTypeSeminar, models.LessonTypeLab:
-		return true
-	}
-	return false
 }
