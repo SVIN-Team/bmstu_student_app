@@ -12,7 +12,7 @@ build: $(EXE_PATH)
 
 .PHONY: run
 run: $(EXE_PATH)
-	$< -c ../deploy/config/config.yaml
+	ACCESS_SECRET_KEY=dev REFRESH_SECRET_KEY=dev $< -c ../deploy/config/config.yaml
 
 .PHONY: clean
 clean:

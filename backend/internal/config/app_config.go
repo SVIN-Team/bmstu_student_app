@@ -13,9 +13,6 @@ type ApplicationConfig struct {
 	LoggerConfig LoggerConfig `yaml:"logger"`
 	AuthConfig   AuthConfig   `yaml:"auth"`
 }
-	LoggerConfig LoggerConfig `yaml:"logger"`
-	AuthConfig   AuthConfig   `yaml:"auth"`
-}
 
 func LoadApplicationConfig(path string) (*ApplicationConfig, error) {
 	cfg := new(ApplicationConfig)

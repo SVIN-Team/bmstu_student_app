@@ -89,7 +89,7 @@ func (a *AuthUseCase) SignIn(ctx context.Context, user models.User) (accessToken
 }
 
 func (a *AuthUseCase) Refresh(ctx context.Context, refreshTokenString string) (accessToken string, newRefreshToken string, err error) {
-	claims, err := a.parseRefreshToken(refreshTokenString)
+	claims, err := a.parseRefreshToken(ctx, refreshTokenString)
 	if err != nil {
 		return "", "", err
 	}
@@ -127,7 +127,7 @@ func (a *AuthUseCase) Refresh(ctx context.Context, refreshTokenString string) (a
 }
 
 func (a *AuthUseCase) SignOut(ctx context.Context, refreshTokenString string) error {
-	claims, err := a.parseRefreshToken(refreshTokenString)
+	claims, err := a.parseRefreshToken(ctx, refreshTokenString)
 	if err != nil {
 		return err
 	}
