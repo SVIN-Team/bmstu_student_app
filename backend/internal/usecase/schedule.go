@@ -376,8 +376,50 @@ func getWeekStart(date time.Time) time.Time {
 }
 
 func formatTeacherName(t models.Teacher) string {
-	if t.Patronymic != "" {
-		return t.LastName + " " + string([]rune(t.FirstName)[0]) + "." + string([]rune(t.Patronymic)[0]) + "."
+	last := strings.TrimSpace(t.LastName)
+	first := strings.TrimSpace(t.FirstName)
+	patr := strings.TrimSpace(t.Patronymic)
+
+	getInitial := func(s string) string {
+		if s == "" {
+			return ""
+		}
+		r := []rune(s)
+		if len(r) == 0 {
+			return ""
+		}
+		return string(r[0]) + "."
 	}
-	return t.LastName + " " + string([]rune(t.FirstName)[0]) + "."
+
+	firstInit := getInitial(first)
+	patrInit := getInitial(patr)
+
+	// Preferred formats when last name is available.
+	if last != "" && firstInit != "" && patrInit != "" {
+		// LastName F.P.
+		return fmt.Sprintf("%s %s%s", last, firstInit, patrInit)
+	}
+	if last != "" && firstInit != "" {
+		// LastName F.
+		return fmt.Sprintf("%s %s", last, firstInit)
+	}
+	if last != "" {
+		// LastName
+		return last
+	}
+
+	// Fallbacks when last name is missing.
+	if first != "" && patr != "" {
+		// FirstName Patronymic
+		return fmt.Sprintf("%s %s", first, patr)
+	}
+	if first != "" {
+		return first
+	}
+	if patr != "" {
+		return patr
+	}
+
+	// All fields empty.
+	return ""
 }
