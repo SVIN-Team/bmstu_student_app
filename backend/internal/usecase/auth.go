@@ -215,7 +215,7 @@ func (a *AuthUseCase) generateRefreshToken(userID uuid.UUID) (string, models.Ref
 	}, nil
 }
 
-func (a *AuthUseCase) parseRefreshToken(tokenString string) (*jwt.RegisteredClaims, error) {
+func (a *AuthUseCase) parseRefreshToken(ctx context.Context, tokenString string) (*jwt.RegisteredClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
@@ -224,7 +224,7 @@ func (a *AuthUseCase) parseRefreshToken(tokenString string) (*jwt.RegisteredClai
 	})
 
 	if err != nil || !token.Valid {
-		logger.Warnf(context.Background(), "invalid refresh token provided: %v", err)
+		logger.Warnf(ctx, "invalid refresh token provided: %v", err)
 		return nil, autherrors.ErrInvalidRefreshToken
 	}
 
