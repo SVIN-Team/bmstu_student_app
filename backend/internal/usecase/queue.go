@@ -344,6 +344,7 @@ func (q *QueueUseCase) SignUp(ctx context.Context, studentID, queueID uuid.UUID)
 		StudentID:  studentID,
 		Status:     models.SlotStatusWaiting,
 		SignedUpAt: time.Now(),
+		Position:   position,
 	}
 
 	if _, err := q.queueRepo.CreateSlot(ctx, slot); err != nil {
