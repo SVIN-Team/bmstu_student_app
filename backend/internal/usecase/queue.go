@@ -428,17 +428,25 @@ func (q *QueueUseCase) MarkPassedCount(ctx context.Context, headmanID, queueID u
 		return apperrors.ErrInternalServer
 	}
 
+	if count < 0 {
+		logger.Errorf(ctx, "negative count passed to MarkPassedCount: %d", count)
+		count = 0
+	}
+
 	// Помечаем первых count как passed, остальных как failed
-	for i, slot := range slots {
+	waitingIndex := 0
+	for _, slot := range slots {
 		if slot.Status != models.SlotStatusWaiting {
 			continue
 		}
 
-		if i < count {
+		if waitingIndex < count {
 			slot.Status = models.SlotStatusPassed
 		} else {
 			slot.Status = models.SlotStatusFailed
 		}
+
+		waitingIndex++
 
 		if err := q.queueRepo.UpdateSlot(ctx, slot); err != nil {
 			logger.Errorf(ctx, "failed to update slot %s: %v", slot.ID, err)
