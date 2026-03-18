@@ -497,9 +497,8 @@ func (q *QueueUseCase) transferFailedStudents(ctx context.Context, fromQueueID, 
 			StudentID:  oldSlot.StudentID,
 			Status:     models.SlotStatusWaiting,
 			SignedUpAt: time.Now(),
+			Position:   lastPosition + i + 1,
 		})
-		_ = i
-		_ = lastPosition // позиция определяется порядком вставки
 	}
 
 	count, err := q.queueRepo.CreateSlots(ctx, newSlots)
