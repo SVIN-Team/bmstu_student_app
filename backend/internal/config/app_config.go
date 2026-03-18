@@ -3,8 +3,8 @@ package config
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
-	"stud_hub/util/logger"
 
 	"gopkg.in/yaml.v3"
 )
@@ -21,9 +21,8 @@ func LoadApplicationConfig(path string) (*ApplicationConfig, error) {
 		return cfg, err
 	}
 	defer func(file *os.File) {
-		err = file.Close()
-		if err != nil {
-			logger.Errorf(context.Background(), "Error while closing config file: %s", err)
+		if cerr := file.Close(); cerr != nil {
+			log.Printf("Error while closing config file: %s", cerr)
 		}
 	}(file)
 
