@@ -1,4 +1,3 @@
-// internal/usecase/queue_usecase.go
 package usecase
 
 import (
@@ -101,7 +100,11 @@ func (q *QueueUseCase) GetMyQueues(ctx context.Context, studentID uuid.UUID) ([]
 	// Фильтруем только те, где студент записан
 	var result []models.Queue
 	for _, queue := range queues {
-		slot, _ := q.queueRepo.GetSlotByQueueAndStudent(ctx, queue.ID, studentID)
+		slot, err := q.queueRepo.GetSlotByQueueAndStudent(ctx, queue.ID, studentID)
+		if err != nil {
+			logger.Errorf(ctx, "failed to get slot for queue %s and student %s: %v", queue.ID, studentID, err)
+			return nil, apperrors.ErrInternalServer
+		}
 		if slot != nil {
 			result = append(result, queue)
 		}
@@ -369,7 +372,11 @@ func (q *QueueUseCase) CancelSignUp(ctx context.Context, studentID, queueID uuid
 	}
 
 	slot, err := q.queueRepo.GetSlotByQueueAndStudent(ctx, queueID, studentID)
-	if err != nil || slot == nil {
+	if err != nil {
+		logger.Errorf(ctx, "failed to get slot by queue and student: %v", err)
+		return apperrors.ErrInternalServer
+	}
+	if slot == nil {
 		return apperrors.ErrNotInQueue
 	}
 
@@ -435,6 +442,7 @@ func (q *QueueUseCase) MarkPassedCount(ctx context.Context, headmanID, queueID u
 
 	// Помечаем первых count как passed, остальных как failed
 	waitingIndex := 0
+	hadError := false
 	for _, slot := range slots {
 		if slot.Status != models.SlotStatusWaiting {
 			continue
@@ -450,7 +458,13 @@ func (q *QueueUseCase) MarkPassedCount(ctx context.Context, headmanID, queueID u
 
 		if err := q.queueRepo.UpdateSlot(ctx, slot); err != nil {
 			logger.Errorf(ctx, "failed to update slot %s: %v", slot.ID, err)
+			hadError = true
 		}
+	}
+
+	if hadError {
+		logger.Errorf(ctx, "one or more slots failed to update in queue %s", queueID)
+		return apperrors.ErrInternalServer
 	}
 
 	logger.Infof(ctx, "marked %d students as passed in queue %s", count, queueID)

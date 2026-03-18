@@ -79,6 +79,7 @@ func (a *AuthUseCase) SignIn(ctx context.Context, user models.User) (accessToken
 	err = a.tokenRepo.DeleteUserRefreshTokens(ctx, userData.ID)
 	if err != nil {
 		logger.Errorf(ctx, "failed to delete old user refresh tokens for user %s: %v", userData.ID, err)
+		return "", "", autherrors.ErrInternalServer
 	}
 
 	accessToken, refreshToken, err = a.createTokenPair(ctx, userData.ID)
