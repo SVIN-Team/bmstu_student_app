@@ -22,16 +22,12 @@ type LessonRepository interface {
 	CheckOverlap(ctx context.Context, groupID uuid.UUID, startsAt, endsAt time.Time, excludeID *uuid.UUID) (bool, error)
 	BulkCreate(ctx context.Context, lessons []models.Lesson) (int, error)
 	DeleteByGroupAndDateRange(ctx context.Context, groupID uuid.UUID, from, to time.Time) (int, error)
+	GetLessonDetails(ctx context.Context, id uuid.UUID) (models.LessonDetails, error)
 }
 
-type SubjectRepositoryForSchedule interface {
+type SubjectRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (models.Subject, error)
 	GetOrCreateByName(ctx context.Context, name string) (uuid.UUID, error)
-}
-
-type GroupRepositoryForSchedule interface {
-	GetByID(ctx context.Context, id uuid.UUID) (models.Group, error)
-	GetByName(ctx context.Context, name string) (models.Group, error)
 }
 
 type TeacherRepository interface {
@@ -39,31 +35,27 @@ type TeacherRepository interface {
 	GetOrCreateByFullName(ctx context.Context, lastName, firstName, patronymic string) (uuid.UUID, error)
 }
 
-type ClassroomRepositoryForSchedule interface {
+type ClassroomRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (models.Classroom, error)
 	GetOrCreateByName(ctx context.Context, name string) (uuid.UUID, error)
 }
 
-type QueueRepositoryForSchedule interface {
-	GetByLessonID(ctx context.Context, lessonID uuid.UUID) (*models.Queue, error)
-}
-
 type ScheduleUseCase struct {
 	lessonRepo    LessonRepository
-	subjectRepo   SubjectRepositoryForSchedule
-	groupRepo     GroupRepositoryForSchedule
+	subjectRepo   SubjectRepository
+	groupRepo     GroupRepository
 	teacherRepo   TeacherRepository
-	classroomRepo ClassroomRepositoryForSchedule
-	queueRepo     QueueRepositoryForSchedule
+	classroomRepo ClassroomRepository
+	queueRepo     QueueRepository
 }
 
 func NewScheduleUseCase(
 	lessonRepo LessonRepository,
-	subjectRepo SubjectRepositoryForSchedule,
-	groupRepo GroupRepositoryForSchedule,
+	subjectRepo SubjectRepository,
+	groupRepo GroupRepository,
 	teacherRepo TeacherRepository,
-	classroomRepo ClassroomRepositoryForSchedule,
-	queueRepo QueueRepositoryForSchedule,
+	classroomRepo ClassroomRepository,
+	queueRepo QueueRepository,
 ) *ScheduleUseCase {
 	return &ScheduleUseCase{
 		lessonRepo:    lessonRepo,
@@ -99,7 +91,11 @@ func (s *ScheduleUseCase) GetSchedule(ctx context.Context, groupID uuid.UUID, fr
 
 	result := make([]models.LessonDetails, 0, len(lessons))
 	for _, lesson := range lessons {
-		details := s.enrichLessonDetails(ctx, lesson)
+		details, err := s.enrichLessonDetails(ctx, lesson)
+		if err != nil {
+			logger.Errorf(ctx, "failed to enrich lesson details: %v", err)
+			return nil, apperrors.ErrInternalServer
+		}
 		result = append(result, details)
 	}
 
@@ -123,7 +119,7 @@ func (s *ScheduleUseCase) GetLessonByID(ctx context.Context, lessonID uuid.UUID)
 	if err != nil {
 		return models.LessonDetails{}, apperrors.ErrLessonNotFound
 	}
-	return s.enrichLessonDetails(ctx, lesson), nil
+	return s.enrichLessonDetails(ctx, lesson)
 }
 
 // ==================== CRUD занятий (админ) ====================
@@ -327,30 +323,16 @@ func (s *ScheduleUseCase) validateLesson(ctx context.Context, lesson models.Less
 	return nil
 }
 
-func (s *ScheduleUseCase) enrichLessonDetails(ctx context.Context, lesson models.Lesson) models.LessonDetails {
+func (s *ScheduleUseCase) enrichLessonDetails(ctx context.Context, lesson models.Lesson) (models.LessonDetails, error) {
 	details := models.LessonDetails{Lesson: lesson}
 
-	if group, err := s.groupRepo.GetByID(ctx, lesson.GroupID); err == nil {
-		details.GroupName = group.Name
+	details, err := s.lessonRepo.GetLessonDetails(ctx, lesson.ID)
+	if err != nil {
+		logger.Errorf(ctx, "failed to get lesson details: %v", err)
+		return details, err
 	}
 
-	if teacher, err := s.teacherRepo.GetByID(ctx, lesson.TeacherID); err == nil {
-		details.TeacherName = formatTeacherName(teacher)
-	}
-
-	if subject, err := s.subjectRepo.GetByID(ctx, lesson.SubjectID); err == nil {
-		details.SubjectName = subject.Name
-	}
-
-	if classroom, err := s.classroomRepo.GetByID(ctx, lesson.RoomID); err == nil {
-		details.RoomName = classroom.Name
-	}
-
-	if queue, err := s.queueRepo.GetByLessonID(ctx, lesson.ID); err == nil && queue != nil {
-		details.QueueID = &queue.ID
-	}
-
-	return details
+	return details, nil
 }
 
 type dateRange struct {

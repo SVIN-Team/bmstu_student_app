@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	apperrors "stud_hub/internal/errors"
@@ -26,7 +27,7 @@ type QueueRepository interface {
 	GetSlotByQueueAndStudent(ctx context.Context, queueID, studentID uuid.UUID) (*models.QueueSlot, error)
 	GetSlotsByQueueID(ctx context.Context, queueID uuid.UUID) ([]models.QueueSlot, error)
 	GetSlotsCount(ctx context.Context, queueID uuid.UUID) (int, error)
-	CreateSlot(ctx context.Context, slot models.QueueSlot) (uuid.UUID, error)
+	CreateSlot(ctx context.Context, slot models.QueueSlot) (*models.QueueSlot, error)
 	CreateSlots(ctx context.Context, slots []models.QueueSlot) (int, error)
 	UpdateSlot(ctx context.Context, slot models.QueueSlot) error
 	DeleteSlot(ctx context.Context, id uuid.UUID) error
@@ -195,6 +196,7 @@ func (q *QueueUseCase) Update(ctx context.Context, headmanID uuid.UUID, queue mo
 	queue.LessonID = existing.LessonID
 	queue.CreatedByUserID = existing.CreatedByUserID
 	queue.CreatedAt = existing.CreatedAt
+	queue.Status = existing.Status
 
 	if err := q.queueRepo.Update(ctx, queue); err != nil {
 		logger.Errorf(ctx, "failed to update queue: %v", err)
@@ -333,30 +335,23 @@ func (q *QueueUseCase) SignUp(ctx context.Context, studentID, queueID uuid.UUID)
 		}
 	}
 
-	// Получаем следующую позицию
-	lastPosition, err := q.queueRepo.GetLastPosition(ctx, queueID)
-	if err != nil {
-		logger.Errorf(ctx, "failed to get last position: %v", err)
-		return 0, apperrors.ErrInternalServer
-	}
-	position := lastPosition + 1
-
+	// position задается базой
 	slot := models.QueueSlot{
 		ID:         uuid.New(),
 		QueueID:    queueID,
 		StudentID:  studentID,
 		Status:     models.SlotStatusWaiting,
 		SignedUpAt: time.Now(),
-		Position:   position,
 	}
 
-	if _, err := q.queueRepo.CreateSlot(ctx, slot); err != nil {
+	newSlot, err := q.queueRepo.CreateSlot(ctx, slot)
+	if err != nil || newSlot == nil {
 		logger.Errorf(ctx, "failed to create slot: %v", err)
 		return 0, apperrors.ErrInternalServer
 	}
 
-	logger.Infof(ctx, "student %s signed up for queue %s at position %d", studentID, queueID, position)
-	return position, nil
+	logger.Infof(ctx, "student %s signed up for queue %s at position %d", studentID, queueID, newSlot.Position)
+	return newSlot.Position, nil
 }
 
 // CancelSignUp отменяет запись студента
@@ -435,6 +430,11 @@ func (q *QueueUseCase) MarkPassedCount(ctx context.Context, headmanID, queueID u
 		return apperrors.ErrInternalServer
 	}
 
+	// Сортируем, чтобы обеспечить верный порядок
+	slices.SortFunc(slots, func(i, j models.QueueSlot) int {
+		return i.Position - j.Position
+	})
+
 	if count < 0 {
 		logger.Errorf(ctx, "negative count passed to MarkPassedCount: %d", count)
 		count = 0
@@ -479,6 +479,14 @@ func (q *QueueUseCase) TransferFailed(ctx context.Context, headmanID, fromQueueI
 	}
 
 	if toQueue.CreatedByUserID != headmanID {
+		return 0, apperrors.ErrForbidden
+	}
+
+	fromQueue, err := q.queueRepo.GetByID(ctx, fromQueueID)
+	if err != nil {
+		return 0, apperrors.ErrQueueNotFound
+	}
+	if fromQueue.CreatedByUserID != headmanID {
 		return 0, apperrors.ErrForbidden
 	}
 
