@@ -309,7 +309,11 @@ func (q *QueueUseCase) SignUp(ctx context.Context, studentID, queueID uuid.UUID)
 	}
 
 	// Проверяем, не записан ли уже
-	existingSlot, _ := q.queueRepo.GetSlotByQueueAndStudent(ctx, queueID, studentID)
+	existingSlot, err := q.queueRepo.GetSlotByQueueAndStudent(ctx, queueID, studentID)
+	if err != nil {
+		logger.Errorf(ctx, "failed to get slot by queue and student: %v", err)
+		return 0, apperrors.ErrInternalServer
+	}
 	if existingSlot != nil {
 		return 0, apperrors.ErrAlreadyInQueue
 	}
