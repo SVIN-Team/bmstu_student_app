@@ -24,3 +24,12 @@ type Lesson struct {
 	StartsAt   time.Time
 	EndsAt     time.Time
 }
+
+type LessonDetails struct {
+	Lesson
+	GroupName   string
+	TeacherName string
+	SubjectName string
+	RoomName    string
+	QueueID     *uuid.UUID
+}

@@ -23,5 +23,6 @@ type User struct {
 	Patronymic   string
 	Role         RoleType
 	GroupID      uuid.UUID
+	UniversityID uuid.UUID
 	CreatedAt    time.Time
 }
