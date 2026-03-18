@@ -238,7 +238,11 @@ func (s *ScheduleUseCase) ImportSchedule(ctx context.Context, rows []models.Sche
 	// Удаляем существующие занятия в нужных диапазонах
 	if replaceExisting {
 		for groupID, dr := range groupDateRanges {
-			deleted, _ := s.lessonRepo.DeleteByGroupAndDateRange(ctx, groupID, dr.from, dr.to)
+			deleted, err := s.lessonRepo.DeleteByGroupAndDateRange(ctx, groupID, dr.from, dr.to)
+			if err != nil {
+				logger.Errorf(ctx, "failed to delete existing lessons for group %s in range %v - %v: %v", groupID, dr.from, dr.to, err)
+				return result, apperrors.ErrInternalServer
+			}
 			logger.Infof(ctx, "deleted %d existing lessons for group %s", deleted, groupID)
 		}
 	}
