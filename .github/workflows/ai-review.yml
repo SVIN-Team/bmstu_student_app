@@ -3,7 +3,7 @@ name: "AI Ревью с проверкой по ТЗ"
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited]
     branches:
       - develop
   issues:
