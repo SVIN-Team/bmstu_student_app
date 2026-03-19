@@ -345,8 +345,12 @@ func (q *QueueUseCase) SignUp(ctx context.Context, studentID, queueID uuid.UUID)
 	}
 
 	newSlot, err := q.queueRepo.CreateSlot(ctx, slot)
-	if err != nil || newSlot == nil {
+	if err != nil {
 		logger.Errorf(ctx, "failed to create slot: %v", err)
+		return 0, apperrors.ErrInternalServer
+	}
+	if newSlot == nil {
+		logger.Errorf(ctx, "queueRepo.CreateSlot returned nil slot without error")
 		return 0, apperrors.ErrInternalServer
 	}
 
