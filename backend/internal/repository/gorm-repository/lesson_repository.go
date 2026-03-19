@@ -66,7 +66,7 @@ func (r *LessonRepository) Update(ctx context.Context, lesson models.Lesson) err
 		UpdateUUID("group_id", l.GroupID).
 		UpdateUUID("subject_id", l.SubjectID).
 		UpdateUUID("teacher_id", l.TeacherID).
-		UpdatePtrUUID("room_id", l.RoomID).
+		SetPtrUUID("room_id", l.RoomID).
 		UpdateValue("type", l.Type).
 		UpdateTime("starts_at", l.StartsAt).
 		UpdateTime("ends_at", l.EndsAt)

@@ -110,7 +110,7 @@ func (r *QueueRepository) Update(ctx context.Context, queue models.Queue) error 
 	builder := PartialUpdateBuilder().
 		UpdateUUID("group_id", gQueue.GroupID).
 		UpdateUUID("subject_id", gQueue.SubjectID).
-		UpdatePtrUUID("lesson_id", gQueue.LessonID).
+		SetPtrUUID("lesson_id", gQueue.LessonID).
 		UpdateUUID("created_by", gQueue.CreatedBy).
 		UpdateTime("created_at", gQueue.CreatedAt).
 		UpdateTime("opens_at", gQueue.OpensAt).

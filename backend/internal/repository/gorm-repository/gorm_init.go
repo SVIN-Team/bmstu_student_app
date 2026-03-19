@@ -16,19 +16,21 @@ func CreateDB(ctx context.Context, cfg *config.PostgresConfig) (*gorm.DB, error)
 	if err != nil {
 		return nil, err
 	}
-
-	if err := db.AutoMigrate(
-		&gormmodels.Group{},
-		&gormmodels.User{},
-		&gormmodels.Subject{},
-		&gormmodels.Teacher{},
-		&gormmodels.Room{},
-		&gormmodels.Lesson{},
-		&gormmodels.Queue{},
-		&gormmodels.QueueSlot{},
-	); err != nil {
-		logger.Errorf(ctx, "gorm auto-migrate failed: %v", err)
-		return nil, err
+	if cfg.PerformOrmMigration {
+		logger.Infof(ctx, "performing gorm migration")
+		if err := db.AutoMigrate(
+			&gormmodels.Group{},
+			&gormmodels.User{},
+			&gormmodels.Subject{},
+			&gormmodels.Teacher{},
+			&gormmodels.Room{},
+			&gormmodels.Lesson{},
+			&gormmodels.Queue{},
+			&gormmodels.QueueSlot{},
+		); err != nil {
+			logger.Errorf(ctx, "gorm auto-migrate failed: %v", err)
+			return nil, err
+		}
 	}
 	logger.Infof(ctx, "successfully connected to postgres")
 	return db, nil

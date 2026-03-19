@@ -35,24 +35,25 @@ func Run(cfg *config.ApplicationConfig) {
 		return
 	}
 
-	token_repo := redisrepository.NewTokenRepository(rd)
-	user_repo := gormrepository.NewUserRepository(db)
-	group_repo := gormrepository.NewGroupRepository(db)
-	teacher_repo := gormrepository.NewTeacherRepository(db)
-	subject_repo := gormrepository.NewSubjectRepository(db)
-	classroom_repo := gormrepository.NewClassroomRepository(db)
-	queue_repo := gormrepository.NewQueueRepository(db)
-	queue_slots_repo := gormrepository.NewQueueSlotsRepository(db)
-	lesson_repo := gormrepository.NewLessonRepository(db)
+	tokenRepo := redisrepository.NewTokenRepository(rd)
+	userRepo := gormrepository.NewUserRepository(db)
+	groupRepo := gormrepository.NewGroupRepository(db)
+	teacherRepo := gormrepository.NewTeacherRepository(db)
+	subjectRepo := gormrepository.NewSubjectRepository(db)
+	classroomRepo := gormrepository.NewClassroomRepository(db)
+	queueRepo := gormrepository.NewQueueRepository(db)
+	queueSlotsRepo := gormrepository.NewQueueSlotsRepository(db)
+	lessonRepo := gormrepository.NewLessonRepository(db)
 
 
-	auth := usecase.NewAuthUseCase(token_repo, user_repo, cfg.AuthConfig)
-	_ = usecase.NewGroupUseCase(group_repo)
-	_ = usecase.NewScheduleUseCase(lesson_repo, subject_repo, group_repo, teacher_repo, classroom_repo, queue_repo)
-	_ = usecase.NewQueueUseCase(queue_repo, queue_slots_repo, user_repo)
-
-	logger.Infof(ctx, "Приложение запущено! ^w^")
-	tmp_app(ctx, auth)
+	auth := usecase.NewAuthUseCase(tokenRepo, userRepo, cfg.AuthConfig)
+	_ = usecase.NewGroupUseCase(groupRepo)
+	_ = usecase.NewScheduleUseCase(lessonRepo, subjectRepo, groupRepo, teacherRepo, classroomRepo, queueRepo)
+	_ = usecase.NewQueueUseCase(queueRepo, queueSlotsRepo, userRepo)
+	if cfg.TestMode {
+		logger.Infof(ctx, "Приложение запущено! ^w^")
+		tmp_app(ctx, auth)
+	}
 }
 
 
@@ -61,11 +62,13 @@ func tmp_app(ctx context.Context, auth *usecase.AuthUseCase) {
 	for {
 		select {
 		case <-ctx.Done(): {
-			break
+			logger.Infof(ctx, "stopped loop")
+			ticker.Stop()
+			return
 		}
 		case <-ticker.C: {
 			logger.Infof(ctx, "Создать тестового пользователя")
-			a, b, err := auth.SignUp(ctx, models.User{
+			_, _, err := auth.SignUp(ctx, models.User{
 				FirstName: "Test",
 				LastName: "Dog",
 				Patronymic: "Patron",
@@ -75,7 +78,7 @@ func tmp_app(ctx context.Context, auth *usecase.AuthUseCase) {
 			if err != nil {
 				logger.Errorf(ctx, "cannot create user: %v", err)
 			} else {
-				logger.Infof(ctx, "created user, got the %s and %s as tokens", a, b)
+				logger.Infof(ctx, "created user successfully")
 			}
 		}
 		}

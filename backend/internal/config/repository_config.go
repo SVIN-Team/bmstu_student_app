@@ -7,6 +7,7 @@ type RepositoryConfig struct {
 
 type PostgresConfig struct {
 	PostgresConnectionString string `yaml:"postgres_connection_string"`
+	PerformOrmMigration bool `yaml:"perform_orm_migration"`
 }
 
 type RedisConfig struct {

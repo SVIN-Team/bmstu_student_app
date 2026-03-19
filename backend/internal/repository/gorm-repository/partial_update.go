@@ -8,7 +8,7 @@ import (
 
 type updateBuilder interface{
 	UpdateUUID(key string, value uuid.UUID) updateBuilder
-	UpdatePtrUUID(key string, value *uuid.UUID) updateBuilder
+	SetPtrUUID(key string, value *uuid.UUID) updateBuilder
 	UpdateField(key string, value string) updateBuilder
 	UpdateTime(key string, value time.Time) updateBuilder
 	UpdateValue(key string, value interface{}) updateBuilder
@@ -30,10 +30,8 @@ func (partial *partialUpdateBuilder) UpdateUUID(key string, value uuid.UUID) upd
 	return partial
 }
 
-func (partial *partialUpdateBuilder) UpdatePtrUUID(key string, value *uuid.UUID) updateBuilder {
-	if value != nil {
-		partial.updateList[key] = value
-	}
+func (partial *partialUpdateBuilder) SetPtrUUID(key string, value *uuid.UUID) updateBuilder {
+	partial.updateList[key] = value
 	return partial
 }
 

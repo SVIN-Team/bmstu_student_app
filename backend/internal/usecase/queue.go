@@ -27,7 +27,6 @@ type QueueSlotsRepository interface {
 
 type QueueRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (models.Queue, error)
-	//GetByIDWithSlots(ctx context.Context, id uuid.UUID) (models.Queue, error)
 	GetByGroupID(ctx context.Context, groupID uuid.UUID) ([]models.Queue, error)
 	GetByLessonID(ctx context.Context, lessonID uuid.UUID) (*models.Queue, error)
 	GetActiveByGroupAndSubject(ctx context.Context, groupID, subjectID uuid.UUID) (*models.Queue, error)

@@ -50,7 +50,7 @@ func (r *UserRepository) UpdateUser(ctx context.Context, user models.User) (mode
 		UpdateField("last_name", gUser.LastName).
 		UpdateField("patronymic", gUser.Patronymic).
 		UpdateValue("role", gUser.Role).
-		UpdatePtrUUID("group_id", gUser.GroupID).
+		SetPtrUUID("group_id", gUser.GroupID).
 		UpdateValue("is_blocked", user.IsBlocked)
 		
 

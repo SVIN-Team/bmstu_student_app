@@ -12,6 +12,7 @@ type ApplicationConfig struct {
 	LoggerConfig LoggerConfig `yaml:"logger"`
 	AuthConfig   AuthConfig   `yaml:"auth"`
 	RepositoryConfig RepositoryConfig `yaml:"repository"`
+	TestMode bool `yaml:"test_mode"`
 }
 
 func LoadApplicationConfig(path string) (*ApplicationConfig, error) {

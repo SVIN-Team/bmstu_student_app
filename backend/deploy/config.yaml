@@ -7,4 +7,7 @@ auth:
 
 repository:
   postgres_connection_string: from_env
+  perform_orm_migration: false
   redis_connection_string: redis://localhost:6379/0
+
+test_mode: true
