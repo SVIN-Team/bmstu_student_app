@@ -35,7 +35,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, uid uuid.UUID) (models
 	var gUser gormmodels.User
 	if err := r.db.WithContext(ctx).First(&gUser, "id = ?", uid).Error; err != nil {
 		logger.Warnf(ctx, "gorm: failed to get user by id %s: %v", uid, err)
-		return models.User{}, err
+		return models.User{}, autherrors.ErrUserNotFound
 	}
 	return fromGormUser(gUser), nil
 }
@@ -78,7 +78,7 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (mode
 	var gUser gormmodels.User
 	if err := r.db.WithContext(ctx).First(&gUser, "email = ?", email).Error; err != nil {
 		logger.Warnf(ctx, "gorm: failed to get user by email %s: %v", email, err)
-		return models.User{}, err
+		return models.User{}, autherrors.ErrUserNotFound
 	}
 	return fromGormUser(gUser), nil
 }

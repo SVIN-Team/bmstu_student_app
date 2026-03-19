@@ -17,7 +17,6 @@ type Queue struct {
 	ClosesAt  *time.Time  `gorm:"column:closes_at"`
 	MaxSize   *int        `gorm:"column:max_size"`
 	Status    QueueStatus `gorm:"column:status;type:queue_status;not null;default:'draft';index:idx_queues_group_status"`
-	Version   int         `gorm:"column:version;not null;default:1"`
 	
 	Group     Group       `gorm:"foreignKey:GroupID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Subject   Subject     `gorm:"foreignKey:SubjectID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`

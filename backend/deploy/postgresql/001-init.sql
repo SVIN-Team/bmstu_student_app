@@ -131,7 +131,6 @@ CREATE TABLE queues (
     closes_at TIMESTAMP,
     max_size INT,
     status queue_status NOT NULL DEFAULT 'draft',
-    version INT NOT NULL DEFAULT 1,
 
     CONSTRAINT fk_queues_group
         FOREIGN KEY (group_id)
@@ -160,7 +159,6 @@ CREATE TABLE queue_slots (
     student_id UUID NOT NULL,
     status queue_slot_status NOT NULL DEFAULT 'waiting',
     signed_up_at TIMESTAMP NOT NULL DEFAULT now(),
-    version INT NOT NULL DEFAULT 1,
 
     CONSTRAINT fk_queue_slots_queue
         FOREIGN KEY (queue_id)

@@ -153,7 +153,7 @@ func (r *QueueSlotsRepository) DeleteSlot(ctx context.Context, id uuid.UUID) err
 func (r *QueueSlotsRepository) GetFailedSlotsByQueueID(ctx context.Context, queueID uuid.UUID) ([]models.QueueSlot, error) {
 	var slots []gormmodels.QueueSlot
 	if err := r.db.WithContext(ctx).
-		Where("queue_id = ? AND status = ?", queueID, gormmodels.QueueSlotStatusFailed).
+		Where("queue_id = ? AND status IN (?, ?)", queueID, gormmodels.QueueSlotStatusFailed, gormmodels.QueueSlotStatusNoShow).
 		Order("signed_up_at asc, id asc").
 		Find(&slots).Error; err != nil {
 		logger.Errorf(ctx, "gorm: failed to get failed slots for queue %s: %v", queueID, err)

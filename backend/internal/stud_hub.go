@@ -73,7 +73,7 @@ func tmp_app(ctx context.Context, auth *usecase.AuthUseCase) {
 				LastName: "Dog",
 				Patronymic: "Patron",
 				PasswordHash: "password",
-				Email: fmt.Sprintf("email@%s.com",time.Now().String()),
+				Email: fmt.Sprintf("email@%s.com",uuid.New().String()),
 			})
 			if err != nil {
 				logger.Errorf(ctx, "cannot create user: %v", err)

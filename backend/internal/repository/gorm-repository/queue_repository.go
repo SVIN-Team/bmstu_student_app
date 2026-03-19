@@ -116,8 +116,7 @@ func (r *QueueRepository) Update(ctx context.Context, queue models.Queue) error 
 		UpdateTime("opens_at", gQueue.OpensAt).
 		UpdateValue("closes_at", gQueue.ClosesAt).
 		UpdateValue("max_size", gQueue.MaxSize).
-		UpdateValue("status", gQueue.Status).
-		UpdateValue("version", gQueue.Version)
+		UpdateValue("status", gQueue.Status)
 
 	updates := builder.Build()
 	if len(updates) == 0 {

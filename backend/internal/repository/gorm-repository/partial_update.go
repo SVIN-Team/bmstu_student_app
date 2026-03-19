@@ -1,6 +1,7 @@
 package gormrepository
 
 import (
+	"reflect"
 	"time"
 
 	"github.com/google/uuid"
@@ -50,17 +51,21 @@ func (partial *partialUpdateBuilder) UpdateTime(key string, value time.Time) upd
 }
 
 func (partial *partialUpdateBuilder) UpdateValue(key string, value interface{}) updateBuilder {
-	switch v := value.(type) {
-	case string:
-		if v != "" {
-			partial.updateList[key] = v
-		}
-	case nil:
-		// skip nil
-	default:
-		partial.updateList[key] = v
+ 	if value == nil {
+ 		return partial
+ 	}
+ 	v := reflect.ValueOf(value)
+ 	t := v.Type()
+ 	if t.Kind() == reflect.Ptr && v.IsNil() {
+ 		return partial
+ 	}
+ 	if t.Kind() == reflect.String {
+ 		if v.Len() == 0 {
+ 			return partial
+ 		}
 	}
-	return partial
+	partial.updateList[key] = value
+ 	return partial
 }
 
 func (partial *partialUpdateBuilder) Build() map[string]interface{} {
