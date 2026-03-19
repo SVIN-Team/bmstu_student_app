@@ -43,26 +43,19 @@ func (r *UserRepository) GetUserByID(ctx context.Context, uid uuid.UUID) (models
 func (r *UserRepository) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
 	gUser := toGormUser(user)
 
-	updates := map[string]interface{}{}
+	builder := PartialUpdateBuilder()
+	builder.
+		UpdateField("email", gUser.Email).
+		UpdateField("first_name", gUser.FirstName).
+		UpdateField("last_name", gUser.LastName).
+		UpdateValue("role", gUser.Role).
+		UpdatePtrUUID("group_id", gUser.GroupID)
 
-	if gUser.Email != "" {
-		updates["email"] = gUser.Email
-	}
-	if gUser.FirstName != "" {
-		updates["first_name"] = gUser.FirstName
-	}
-	if gUser.LastName != "" {
-		updates["last_name"] = gUser.LastName
-	}
-	if gUser.Role != "" {
-		updates["role"] = gUser.Role
-	}
-	if gUser.GroupID != nil {
-		updates["group_id"] = gUser.GroupID
-	}
 	if gUser.PasswordHash != nil && *gUser.PasswordHash != "" {
-		updates["password_hash"] = gUser.PasswordHash
+		builder.UpdateValue("password_hash", gUser.PasswordHash)
 	}
+
+	updates := builder.Build()
 
 	if len(updates) == 0 {
 		return r.GetUserByID(ctx, user.ID)

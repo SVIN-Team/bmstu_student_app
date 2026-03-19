@@ -14,6 +14,7 @@ type User struct {
 	LastName     string     `gorm:"column:last_name;type:varchar(100);not null"`
 	Role         UserRole   `gorm:"column:role;type:user_role;not null;default:'student'"`
 	GroupID      *uuid.UUID `gorm:"column:group_id;type:uuid"`
+	Group        *Group     `gorm:"foreignKey:GroupID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	IsBlocked    bool       `gorm:"column:is_blocked;not null;default:false"`
 	CreatedAt    time.Time  `gorm:"column:created_at;not null;autoCreateTime"`
 }
