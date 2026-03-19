@@ -200,25 +200,18 @@ jobs:
         run: |
           cat > full_review.txt << 'EOF'
           ## Полное AI Ревью PR #${{ steps.pr_data.outputs.NUMBER }}
-
           **Заголовок:** ${{ steps.pr_data.outputs.TITLE }}
           **Ветка:** ${{ steps.pr_data.outputs.BRANCH }}
           **Изменено файлов:** ${{ steps.files.outputs.COUNT }}
-
           ---
-
           ### Проверка по Техническому заданию:
-
           **ТЗ загружено из:** `docs/tz.md`
-
           EOF
-
           echo -e "\n### 🔍 Анализ изменений:\n" >> full_review.txt
-
-          for file in ${{ steps.files.outputs.FILES }}; do
+          FILES_LIST="${{ steps.files.outputs.FILES }}"
+          while IFS= read -r file; do
             if [ -f "$file" ]; then
               echo -e "\n#### Файл: \`$file\`" >> full_review.txt
-
               if [[ "$file" == *.go ]]; then
                 CONTENT=$(cat "$file" | head -500)
                 REVIEW=$(ollama run codellama:7b-instruct \
@@ -230,51 +223,46 @@ jobs:
           1. Соответствие ТЗ?
           2. Все требования реализованы?
           3. Нужны доработки?
-          Ответь на только на русском языке.")
-                          echo "**Соответствие ТЗ:**" >> full_review.txt
-                          echo "$REVIEW" >> full_review.txt
-
-                        elif [[ "$file" == *.js ]] || \
-                          [[ "$file" == *.jsx ]]; then
-                          CONTENT=$(cat "$file" | head -500)
-                          REVIEW=$(ollama run codellama:7b-instruct \
-                            "Проверь frontend код:
+          Ответь только на русском языке.")
+                    echo "**Соответствие ТЗ:**" >> full_review.txt
+                    echo "$REVIEW" >> full_review.txt
+                  elif [[ "$file" == *.js ]] || [[ "$file" == *.jsx ]]; then
+                    CONTENT=$(cat "$file" | head -500)
+                    REVIEW=$(ollama run codellama:7b-instruct \
+                      "Проверь frontend код:
           Раздел 2.3
           Код:
           $CONTENT
           Оцени функционал для ролей пользователей.
-          Ответь на только на русском языке.")
-                          echo "$REVIEW" >> full_review.txt
-
-                        elif [[ "$file" == *.sql ]] || \
-                          [[ "$file" == *migration* ]]; then
-                          CONTENT=$(cat "$file")
-                          REVIEW=$(ollama run codellama:7b-instruct \
-                            "Проверь миграцию БД:
+          Ответь только на русском языке.")
+                    echo "$REVIEW" >> full_review.txt
+                  elif [[ "$file" == *.sql ]] || \
+                    [[ "$file" == *migration* ]]; then
+                    CONTENT=$(cat "$file")
+                    REVIEW=$(ollama run codellama:7b-instruct \
+                      "Проверь миграцию БД:
           Раздел 3.3
           Миграция:
           $CONTENT
           Проверь таблицы, типы данных, индексы.
-          Ответь на только на русском языке.")
-                          echo "$REVIEW" >> full_review.txt
-                        fi
-                        echo -e "\n---" >> full_review.txt
-                      fi
-                    done
-
-                    cat docs_review.txt >> full_review.txt
-
-                    echo -e "\n### 📊 Итоговая оценка:\n" >> full_review.txt
-                    SUMMARY=$(ollama run llama2:7b \
-                      "Оцени PR:
-          1. Соответствие ТЗ (1-10)
-          2. Что хорошо
-          3. Что исправить
+          Ответь только на русском языке.")
+                    echo "$REVIEW" >> full_review.txt
+                  fi
+                  echo -e "\n---" >> full_review.txt
+                fi
+              done <<< "$FILES_LIST"
+              cat docs_review.txt >> full_review.txt
+              echo -e "\n### 📊 Итоговая оценка:\n" >> full_review.txt
+              SUMMARY=$(ollama run llama2:7b \
+                "Оцени PR:
+          1. Соответствие ТЗ (1-10);
+          2. Что хорошо;
+          3. Что исправить;
           4. Можно ли мержить?
           PR: ${{ steps.pr_data.outputs.TITLE }}
           Файлов: ${{ steps.files.outputs.COUNT }}
           Ответь кратко только на русском языке.")
-                    echo "$SUMMARY" >> full_review.txt
+              echo "$SUMMARY" >> full_review.txt
 
       - name: Опубликовать полное ревью
         uses: actions/github-script@v6
