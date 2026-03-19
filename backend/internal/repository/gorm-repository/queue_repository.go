@@ -31,7 +31,7 @@ func (r *QueueRepository) GetByID(ctx context.Context, id uuid.UUID) (models.Que
 		logger.Errorf(ctx, "gorm: failed to get queue %s: %v", id, err)
 		return models.Queue{}, apperrors.ErrInternalServer
 	}
-	return fromGormQueue(q), nil
+	return gormmodels.FromGormQueue(q), nil
 }
 
 // func (r *QueueRepository) GetByIDWithSlots(ctx context.Context, id uuid.UUID) (models.Queue, error) {
@@ -59,7 +59,7 @@ func (r *QueueRepository) GetByGroupID(ctx context.Context, groupID uuid.UUID) (
 
 	result := make([]models.Queue, 0, len(queues))
 	for _, q := range queues {
-		result = append(result, fromGormQueue(q))
+		result = append(result, gormmodels.FromGormQueue(q))
 	}
 	return result, nil
 }
@@ -74,7 +74,7 @@ func (r *QueueRepository) GetByLessonID(ctx context.Context, lessonID uuid.UUID)
 		logger.Errorf(ctx, "gorm: failed to get queue by lesson %s: %v", lessonID, err)
 		return nil, apperrors.ErrInternalServer
 	}
-	queue := fromGormQueue(q)
+	queue := gormmodels.FromGormQueue(q)
 	return &queue, nil
 }
 
@@ -91,12 +91,12 @@ func (r *QueueRepository) GetActiveByGroupAndSubject(ctx context.Context, groupI
 		logger.Errorf(ctx, "gorm: failed to get active queue for group %s subject %s: %v", groupID, subjectID, err)
 		return nil, apperrors.ErrInternalServer
 	}
-	queue := fromGormQueue(q)
+	queue := gormmodels.FromGormQueue(q)
 	return &queue, nil
 }
 
 func (r *QueueRepository) Create(ctx context.Context, queue models.Queue) (uuid.UUID, error) {
-	gQueue := toGormQueue(queue)
+	gQueue := gormmodels.ToGormQueue(queue)
 	if err := r.db.WithContext(ctx).Create(&gQueue).Error; err != nil {
 		logger.Errorf(ctx, "gorm: failed to create queue %s: %v", queue.ID, err)
 		return uuid.UUID{}, apperrors.ErrInternalServer
@@ -105,7 +105,7 @@ func (r *QueueRepository) Create(ctx context.Context, queue models.Queue) (uuid.
 }
 
 func (r *QueueRepository) Update(ctx context.Context, queue models.Queue) error {
-	gQueue := toGormQueue(queue)
+	gQueue := gormmodels.ToGormQueue(queue)
 
 	builder := PartialUpdateBuilder().
 		UpdateUUID("group_id", gQueue.GroupID).
@@ -138,57 +138,3 @@ func (r *QueueRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-// converters
-
-func toGormQueue(q models.Queue) gormmodels.Queue {
-	var lessonID *uuid.UUID
-	if q.LessonID != uuid.Nil {
-		lessonID = &q.LessonID
-	}
-
-	closesAt := q.ClosesAt
-	var maxSize *int
-	if q.MaxSize != nil {
-		val := int(*q.MaxSize)
-		maxSize = &val
-	}
-
-	return gormmodels.Queue{
-		ID:        q.ID,
-		GroupID:   q.GroupID,
-		SubjectID: q.SubjectID,
-		LessonID:  lessonID,
-		CreatedBy: q.CreatedByUserID,
-		CreatedAt: q.CreatedAt,
-		OpensAt:   q.OpensAt,
-		ClosesAt:  closesAt,
-		MaxSize:   maxSize,
-		Status:    gormmodels.QueueStatus(q.Status),
-	}
-}
-
-func fromGormQueue(q gormmodels.Queue) models.Queue {
-	var lessonID uuid.UUID
-	if q.LessonID != nil {
-		lessonID = *q.LessonID
-	}
-
-	var maxSize *uint32
-	if q.MaxSize != nil {
-		val := uint32(*q.MaxSize)
-		maxSize = &val
-	}
-
-	return models.Queue{
-		ID:              q.ID,
-		GroupID:         q.GroupID,
-		SubjectID:       q.SubjectID,
-		LessonID:        lessonID,
-		CreatedByUserID: q.CreatedBy,
-		CreatedAt:       q.CreatedAt,
-		OpensAt:         q.OpensAt,
-		ClosesAt:        q.ClosesAt,
-		MaxSize:         maxSize,
-		Status:          models.QueueStatus(q.Status),
-	}
-}

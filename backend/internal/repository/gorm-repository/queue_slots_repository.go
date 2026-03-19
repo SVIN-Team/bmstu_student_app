@@ -86,7 +86,7 @@ func (r *QueueSlotsRepository) CreateSlot(ctx context.Context, slot models.Queue
 		slot.SignedUpAt = time.Now()
 	}
 
-	gSlot := toGormSlot(slot)
+	gSlot := gormmodels.ToGormSlot(slot)
 	if err := r.db.WithContext(ctx).Create(&gSlot).Error; err != nil {
 		logger.Errorf(ctx, "gorm: failed to create slot: %v", err)
 		return nil, apperrors.ErrInternalServer
@@ -110,7 +110,7 @@ func (r *QueueSlotsRepository) CreateSlots(ctx context.Context, slots []models.Q
 		if s.SignedUpAt.IsZero() {
 			s.SignedUpAt = now
 		}
-		gSlots = append(gSlots, toGormSlot(s))
+		gSlots = append(gSlots, gormmodels.ToGormSlot(s))
 	}
 
 	if err := r.db.WithContext(ctx).Create(&gSlots).Error; err != nil {
@@ -121,7 +121,7 @@ func (r *QueueSlotsRepository) CreateSlots(ctx context.Context, slots []models.Q
 }
 
 func (r *QueueSlotsRepository) UpdateSlot(ctx context.Context, slot models.QueueSlot) error {
-	gSlot := toGormSlot(slot)
+	gSlot := gormmodels.ToGormSlot(slot)
 
 	builder := PartialUpdateBuilder().
 		UpdateValue("status", gSlot.Status).
@@ -176,7 +176,7 @@ func (r *QueueSlotsRepository) attachPosition(ctx context.Context, slot gormmode
 	if err != nil {
 		return models.QueueSlot{}, err
 	}
-	result := fromGormSlot(slot)
+	result := gormmodels.FromGormSlot(slot)
 	result.Position = pos
 	return result, nil
 }
@@ -184,7 +184,7 @@ func (r *QueueSlotsRepository) attachPosition(ctx context.Context, slot gormmode
 func (r *QueueSlotsRepository) attachPositions(slots []gormmodels.QueueSlot) []models.QueueSlot {
 	result := make([]models.QueueSlot, 0, len(slots))
 	for i, s := range slots {
-		slot := fromGormSlot(s)
+		slot := gormmodels.FromGormSlot(s)
 		slot.Position = i + 1 // ordered by signed_up_at,id
 		result = append(result, slot)
 	}
@@ -203,25 +203,4 @@ func (r *QueueSlotsRepository) computePosition(ctx context.Context, slot gormmod
 		return 0, apperrors.ErrInternalServer
 	}
 	return int(count), nil
-}
-
-// converters
-func toGormSlot(s models.QueueSlot) gormmodels.QueueSlot {
-	return gormmodels.QueueSlot{
-		ID:         s.ID,
-		QueueID:    s.QueueID,
-		StudentID:  s.StudentID,
-		Status:     gormmodels.QueueSlotStatus(s.Status),
-		SignedUpAt: s.SignedUpAt,
-	}
-}
-
-func fromGormSlot(s gormmodels.QueueSlot) models.QueueSlot {
-	return models.QueueSlot{
-		ID:         s.ID,
-		QueueID:    s.QueueID,
-		StudentID:  s.StudentID,
-		Status:     models.SlotStatus(s.Status),
-		SignedUpAt: s.SignedUpAt,
-	}
 }

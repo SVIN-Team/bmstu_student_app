@@ -1,6 +1,7 @@
 package gormmodels
 
 import (
+	"stud_hub/internal/models"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,4 +24,55 @@ type User struct {
 
 func (User) TableName() string {
 	return "users"
+}
+
+func ToGormUser(u models.User) User {
+	var password *string
+	if u.PasswordHash != "" {
+		password = &u.PasswordHash
+	}
+
+	return User{
+		ID:           u.ID,
+		Email:        u.Email,
+		PasswordHash: password,
+		FirstName:    u.FirstName,
+		LastName:     u.LastName,
+		Patronymic:   u.Patronymic,
+		Role:         UserRole(u.Role),
+		IsBlocked:    u.IsBlocked,
+		GroupID:      nullableUUID(u.GroupID),
+		CreatedAt:    u.CreatedAt,
+	}
+}
+
+func FromGormUser(u User) models.User {
+	var groupID uuid.UUID
+	if u.GroupID != nil {
+		groupID = *u.GroupID
+	}
+	var password string
+	if u.PasswordHash != nil {
+		password = *u.PasswordHash
+	}
+
+	return models.User{
+		ID:           u.ID,
+		Email:        u.Email,
+		PasswordHash: password,
+		FirstName:    u.FirstName,
+		LastName:     u.LastName,
+		Role:         models.RoleType(u.Role),
+		Patronymic:   u.Patronymic,
+		GroupID:      groupID,
+		IsBlocked:    u.IsBlocked,
+		CreatedAt:    u.CreatedAt,
+	}
+}
+
+func nullableUUID(id uuid.UUID) *uuid.UUID {
+	if id == uuid.Nil {
+		return nil
+	}
+	return &id
 }

@@ -1,6 +1,7 @@
 package gormmodels
 
 import (
+	"stud_hub/internal/models"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,4 +28,60 @@ type Queue struct {
 
 func (Queue) TableName() string {
 	return "queues"
+}
+
+
+// converters
+
+func ToGormQueue(q models.Queue) Queue {
+	var lessonID *uuid.UUID
+	if q.LessonID != uuid.Nil {
+		lessonID = &q.LessonID
+	}
+
+	closesAt := q.ClosesAt
+	var maxSize *int
+	if q.MaxSize != nil {
+		val := int(*q.MaxSize)
+		maxSize = &val
+	}
+
+	return Queue{
+		ID:        q.ID,
+		GroupID:   q.GroupID,
+		SubjectID: q.SubjectID,
+		LessonID:  lessonID,
+		CreatedBy: q.CreatedByUserID,
+		CreatedAt: q.CreatedAt,
+		OpensAt:   q.OpensAt,
+		ClosesAt:  closesAt,
+		MaxSize:   maxSize,
+		Status:    QueueStatus(q.Status),
+	}
+}
+
+func FromGormQueue(q Queue) models.Queue {
+	var lessonID uuid.UUID
+	if q.LessonID != nil {
+		lessonID = *q.LessonID
+	}
+
+	var maxSize *uint32
+	if q.MaxSize != nil {
+		val := uint32(*q.MaxSize)
+		maxSize = &val
+	}
+
+	return models.Queue{
+		ID:              q.ID,
+		GroupID:         q.GroupID,
+		SubjectID:       q.SubjectID,
+		LessonID:        lessonID,
+		CreatedByUserID: q.CreatedBy,
+		CreatedAt:       q.CreatedAt,
+		OpensAt:         q.OpensAt,
+		ClosesAt:        q.ClosesAt,
+		MaxSize:         maxSize,
+		Status:          models.QueueStatus(q.Status),
+	}
 }

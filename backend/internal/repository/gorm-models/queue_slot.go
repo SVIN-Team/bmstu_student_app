@@ -1,6 +1,7 @@
 package gormmodels
 
 import (
+	"stud_hub/internal/models"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,4 +20,24 @@ type QueueSlot struct {
 
 func (QueueSlot) TableName() string {
 	return "queue_slots"
+}
+
+func ToGormSlot(s models.QueueSlot) QueueSlot {
+	return QueueSlot{
+		ID:         s.ID,
+		QueueID:    s.QueueID,
+		StudentID:  s.StudentID,
+		Status:     QueueSlotStatus(s.Status),
+		SignedUpAt: s.SignedUpAt,
+	}
+}
+
+func FromGormSlot(s QueueSlot) models.QueueSlot {
+	return models.QueueSlot{
+		ID:         s.ID,
+		QueueID:    s.QueueID,
+		StudentID:  s.StudentID,
+		Status:     models.SlotStatus(s.Status),
+		SignedUpAt: s.SignedUpAt,
+	}
 }

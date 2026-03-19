@@ -22,7 +22,7 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 }
 
 func (r *UserRepository) CreateUser(ctx context.Context, user models.User) (uuid.UUID, error) {
-	gUser := toGormUser(user)
+	gUser := gormmodels.ToGormUser(user)
 
 	if err := r.db.WithContext(ctx).Create(&gUser).Error; err != nil {
 		logger.Errorf(ctx, "gorm: failed to create user %s: %v", user.Email, err)
@@ -37,11 +37,11 @@ func (r *UserRepository) GetUserByID(ctx context.Context, uid uuid.UUID) (models
 		logger.Warnf(ctx, "gorm: failed to get user by id %s: %v", uid, err)
 		return models.User{}, autherrors.ErrUserNotFound
 	}
-	return fromGormUser(gUser), nil
+	return gormmodels.FromGormUser(gUser), nil
 }
 
 func (r *UserRepository) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
-	gUser := toGormUser(user)
+	gUser := gormmodels.ToGormUser(user)
 
 	builder := PartialUpdateBuilder()
 	builder.
@@ -80,56 +80,6 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (mode
 		logger.Warnf(ctx, "gorm: failed to get user by email %s: %v", email, err)
 		return models.User{}, autherrors.ErrUserNotFound
 	}
-	return fromGormUser(gUser), nil
+	return gormmodels.FromGormUser(gUser), nil
 }
 
-func toGormUser(u models.User) gormmodels.User {
-	var password *string
-	if u.PasswordHash != "" {
-		password = &u.PasswordHash
-	}
-
-	return gormmodels.User{
-		ID:           u.ID,
-		Email:        u.Email,
-		PasswordHash: password,
-		FirstName:    u.FirstName,
-		LastName:     u.LastName,
-		Patronymic:   u.Patronymic,
-		Role:         gormmodels.UserRole(u.Role),
-		IsBlocked:    u.IsBlocked,
-		GroupID:      nullableUUID(u.GroupID),
-		CreatedAt:    u.CreatedAt,
-	}
-}
-
-func fromGormUser(u gormmodels.User) models.User {
-	var groupID uuid.UUID
-	if u.GroupID != nil {
-		groupID = *u.GroupID
-	}
-	var password string
-	if u.PasswordHash != nil {
-		password = *u.PasswordHash
-	}
-
-	return models.User{
-		ID:           u.ID,
-		Email:        u.Email,
-		PasswordHash: password,
-		FirstName:    u.FirstName,
-		LastName:     u.LastName,
-		Role:         models.RoleType(u.Role),
-		Patronymic:   u.Patronymic,
-		GroupID:      groupID,
-		IsBlocked:    u.IsBlocked,
-		CreatedAt:    u.CreatedAt,
-	}
-}
-
-func nullableUUID(id uuid.UUID) *uuid.UUID {
-	if id == uuid.Nil {
-		return nil
-	}
-	return &id
-}

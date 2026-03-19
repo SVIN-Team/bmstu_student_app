@@ -1,6 +1,7 @@
 package gormmodels
 
 import (
+	"stud_hub/internal/models"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,4 +26,40 @@ type Lesson struct {
 
 func (Lesson) TableName() string {
 	return "lessons"
+}
+
+// converters
+func ToGormLesson(l models.Lesson) Lesson {
+	var roomID *uuid.UUID
+	if l.RoomID != uuid.Nil {
+		roomID = &l.RoomID
+	}
+	return Lesson{
+		ID:        l.ID,
+		GroupID:   l.GroupID,
+		SubjectID: l.SubjectID,
+		TeacherID: l.TeacherID,
+		RoomID:    roomID,
+		Type:      LessonType(l.LessonType),
+		StartsAt:  l.StartsAt,
+		EndsAt:    l.EndsAt,
+	}
+}
+
+func FromGormLesson(l Lesson) models.Lesson {
+	var roomID uuid.UUID
+	if l.RoomID != nil {
+		roomID = *l.RoomID
+	}
+
+	return models.Lesson{
+		ID:         l.ID,
+		GroupID:    l.GroupID,
+		TeacherID:  l.TeacherID,
+		SubjectID:  l.SubjectID,
+		RoomID:     roomID,
+		LessonType: models.LessonType(l.Type),
+		StartsAt:   l.StartsAt,
+		EndsAt:     l.EndsAt,
+	}
 }

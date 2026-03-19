@@ -30,7 +30,7 @@ func (r *LessonRepository) GetByID(ctx context.Context, id uuid.UUID) (models.Le
 		logger.Errorf(ctx, "gorm: failed to get lesson %s: %v", id, err)
 		return models.Lesson{}, apperrors.ErrInternalServer
 	}
-	return fromGormLesson(l), nil
+	return gormmodels.FromGormLesson(l), nil
 }
 
 func (r *LessonRepository) GetByGroupAndDateRange(ctx context.Context, groupID uuid.UUID, from, to time.Time) ([]models.Lesson, error) {
@@ -45,13 +45,13 @@ func (r *LessonRepository) GetByGroupAndDateRange(ctx context.Context, groupID u
 
 	result := make([]models.Lesson, 0, len(lessons))
 	for _, l := range lessons {
-		result = append(result, fromGormLesson(l))
+		result = append(result, gormmodels.FromGormLesson(l))
 	}
 	return result, nil
 }
 
 func (r *LessonRepository) Create(ctx context.Context, lesson models.Lesson) (uuid.UUID, error) {
-	l := toGormLesson(lesson)
+	l := gormmodels.ToGormLesson(lesson)
 	if err := r.db.WithContext(ctx).Create(&l).Error; err != nil {
 		logger.Errorf(ctx, "gorm: failed to create lesson %s: %v", lesson.ID, err)
 		return uuid.UUID{}, apperrors.ErrInternalServer
@@ -60,7 +60,7 @@ func (r *LessonRepository) Create(ctx context.Context, lesson models.Lesson) (uu
 }
 
 func (r *LessonRepository) Update(ctx context.Context, lesson models.Lesson) error {
-	l := toGormLesson(lesson)
+	l := gormmodels.ToGormLesson(lesson)
 	builder := PartialUpdateBuilder()
 	builder.
 		UpdateUUID("group_id", l.GroupID).
@@ -111,7 +111,7 @@ func (r *LessonRepository) CheckOverlap(ctx context.Context, groupID uuid.UUID, 
 func (r *LessonRepository) BulkCreate(ctx context.Context, lessons []models.Lesson) (int, error) {
 	gLessons := make([]gormmodels.Lesson, 0, len(lessons))
 	for _, l := range lessons {
-		gLessons = append(gLessons, toGormLesson(l))
+		gLessons = append(gLessons, gormmodels.ToGormLesson(l))
 	}
 
 	if err := r.db.WithContext(ctx).CreateInBatches(&gLessons, 100).Error; err != nil {
@@ -146,7 +146,7 @@ func (r *LessonRepository) GetLessonDetails(ctx context.Context, id uuid.UUID) (
 		return models.LessonDetails{}, apperrors.ErrInternalServer
 	}
 
-	lesson := fromGormLesson(l)
+	lesson := gormmodels.FromGormLesson(l)
 
 	roomName := ""
 	if l.Room != nil && l.Room.Name != nil {
@@ -181,38 +181,4 @@ func (r *LessonRepository) getQueueIDByLesson(ctx context.Context, lessonID uuid
 	return &q.ID, nil
 }
 
-// converters
-func toGormLesson(l models.Lesson) gormmodels.Lesson {
-	var roomID *uuid.UUID
-	if l.RoomID != uuid.Nil {
-		roomID = &l.RoomID
-	}
-	return gormmodels.Lesson{
-		ID:        l.ID,
-		GroupID:   l.GroupID,
-		SubjectID: l.SubjectID,
-		TeacherID: l.TeacherID,
-		RoomID:    roomID,
-		Type:      gormmodels.LessonType(l.LessonType),
-		StartsAt:  l.StartsAt,
-		EndsAt:    l.EndsAt,
-	}
-}
 
-func fromGormLesson(l gormmodels.Lesson) models.Lesson {
-	var roomID uuid.UUID
-	if l.RoomID != nil {
-		roomID = *l.RoomID
-	}
-
-	return models.Lesson{
-		ID:         l.ID,
-		GroupID:    l.GroupID,
-		TeacherID:  l.TeacherID,
-		SubjectID:  l.SubjectID,
-		RoomID:     roomID,
-		LessonType: models.LessonType(l.Type),
-		StartsAt:   l.StartsAt,
-		EndsAt:     l.EndsAt,
-	}
-}
