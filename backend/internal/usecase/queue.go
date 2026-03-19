@@ -12,6 +12,19 @@ import (
 	"github.com/google/uuid"
 )
 
+type QueueSlotsRepository interface {
+	GetSlotByID(ctx context.Context, id uuid.UUID) (models.QueueSlot, error)
+	GetSlotByQueueAndStudent(ctx context.Context, queueID, studentID uuid.UUID) (*models.QueueSlot, error)
+	GetSlotsByQueueID(ctx context.Context, queueID uuid.UUID) ([]models.QueueSlot, error)
+	GetSlotsCount(ctx context.Context, queueID uuid.UUID) (int, error)
+	CreateSlot(ctx context.Context, slot models.QueueSlot) (*models.QueueSlot, error)
+	CreateSlots(ctx context.Context, slots []models.QueueSlot) (int, error)
+	UpdateSlot(ctx context.Context, slot models.QueueSlot) error
+	DeleteSlot(ctx context.Context, id uuid.UUID) error
+	GetFailedSlotsByQueueID(ctx context.Context, queueID uuid.UUID) ([]models.QueueSlot, error)
+	GetLastPosition(ctx context.Context, queueID uuid.UUID) (int, error)
+}
+
 type QueueRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (models.Queue, error)
 	GetByIDWithSlots(ctx context.Context, id uuid.UUID) (models.Queue, error)
@@ -23,16 +36,7 @@ type QueueRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 
 	// Slots
-	GetSlotByID(ctx context.Context, id uuid.UUID) (models.QueueSlot, error)
-	GetSlotByQueueAndStudent(ctx context.Context, queueID, studentID uuid.UUID) (*models.QueueSlot, error)
-	GetSlotsByQueueID(ctx context.Context, queueID uuid.UUID) ([]models.QueueSlot, error)
-	GetSlotsCount(ctx context.Context, queueID uuid.UUID) (int, error)
-	CreateSlot(ctx context.Context, slot models.QueueSlot) (*models.QueueSlot, error)
-	CreateSlots(ctx context.Context, slots []models.QueueSlot) (int, error)
-	UpdateSlot(ctx context.Context, slot models.QueueSlot) error
-	DeleteSlot(ctx context.Context, id uuid.UUID) error
-	GetFailedSlotsByQueueID(ctx context.Context, queueID uuid.UUID) ([]models.QueueSlot, error)
-	GetLastPosition(ctx context.Context, queueID uuid.UUID) (int, error)
+	QueueSlotsRepository
 }
 
 type UserRepositoryForQueue interface {
