@@ -2,7 +2,6 @@ package gormrepository
 
 import (
 	"context"
-	"time"
 
 	apperrors "stud_hub/internal/errors"
 	"stud_hub/internal/models"
@@ -148,7 +147,7 @@ func toGormQueue(q models.Queue) gormmodels.Queue {
 		lessonID = &q.LessonID
 	}
 
-	var closesAt *time.Time = q.ClosesAt
+	closesAt := q.ClosesAt
 	var maxSize *int
 	if q.MaxSize != nil {
 		val := int(*q.MaxSize)
