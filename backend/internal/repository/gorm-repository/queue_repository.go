@@ -15,11 +15,10 @@ import (
 
 type QueueRepository struct {
 	db        *gorm.DB
-	slotsRepo *QueueSlotsRepository
 }
 
 func NewQueueRepository(db *gorm.DB) *QueueRepository {
-	return &QueueRepository{db: db, slotsRepo: NewQueueSlotsRepository(db)}
+	return &QueueRepository{db: db}
 }
 
 // Queue CRUD
@@ -36,19 +35,19 @@ func (r *QueueRepository) GetByID(ctx context.Context, id uuid.UUID) (models.Que
 	return fromGormQueue(q), nil
 }
 
-func (r *QueueRepository) GetByIDWithSlots(ctx context.Context, id uuid.UUID) (models.Queue, error) {
-	queue, err := r.GetByID(ctx, id)
-	if err != nil {
-		return models.Queue{}, err
-	}
+// func (r *QueueRepository) GetByIDWithSlots(ctx context.Context, id uuid.UUID) (models.Queue, error) {
+// 	queue, err := r.GetByID(ctx, id)
+// 	if err != nil {
+// 		return models.Queue{}, err
+// 	}
 
-	slots, err := r.slotsRepo.GetSlotsByQueueID(ctx, id)
-	if err != nil {
-		return models.Queue{}, err
-	}
-	queue.Slots = toSlotPointers(slots)
-	return queue, nil
-}
+// 	slots, err := r.slotsRepo.GetSlotsByQueueID(ctx, id)
+// 	if err != nil {
+// 		return models.Queue{}, err
+// 	}
+// 	queue.Slots = toSlotPointers(slots)
+// 	return queue, nil
+// }
 
 func (r *QueueRepository) GetByGroupID(ctx context.Context, groupID uuid.UUID) ([]models.Queue, error) {
 	var queues []gormmodels.Queue
@@ -141,48 +140,6 @@ func (r *QueueRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-// Slots delegation
-
-func (r *QueueRepository) GetSlotByID(ctx context.Context, id uuid.UUID) (models.QueueSlot, error) {
-	return r.slotsRepo.GetSlotByID(ctx, id)
-}
-
-func (r *QueueRepository) GetSlotByQueueAndStudent(ctx context.Context, queueID, studentID uuid.UUID) (*models.QueueSlot, error) {
-	return r.slotsRepo.GetSlotByQueueAndStudent(ctx, queueID, studentID)
-}
-
-func (r *QueueRepository) GetSlotsByQueueID(ctx context.Context, queueID uuid.UUID) ([]models.QueueSlot, error) {
-	return r.slotsRepo.GetSlotsByQueueID(ctx, queueID)
-}
-
-func (r *QueueRepository) GetSlotsCount(ctx context.Context, queueID uuid.UUID) (int, error) {
-	return r.slotsRepo.GetSlotsCount(ctx, queueID)
-}
-
-func (r *QueueRepository) CreateSlot(ctx context.Context, slot models.QueueSlot) (*models.QueueSlot, error) {
-	return r.slotsRepo.CreateSlot(ctx, slot)
-}
-
-func (r *QueueRepository) CreateSlots(ctx context.Context, slots []models.QueueSlot) (int, error) {
-	return r.slotsRepo.CreateSlots(ctx, slots)
-}
-
-func (r *QueueRepository) UpdateSlot(ctx context.Context, slot models.QueueSlot) error {
-	return r.slotsRepo.UpdateSlot(ctx, slot)
-}
-
-func (r *QueueRepository) DeleteSlot(ctx context.Context, id uuid.UUID) error {
-	return r.slotsRepo.DeleteSlot(ctx, id)
-}
-
-func (r *QueueRepository) GetFailedSlotsByQueueID(ctx context.Context, queueID uuid.UUID) ([]models.QueueSlot, error) {
-	return r.slotsRepo.GetFailedSlotsByQueueID(ctx, queueID)
-}
-
-func (r *QueueRepository) GetLastPosition(ctx context.Context, queueID uuid.UUID) (int, error) {
-	return r.slotsRepo.GetLastPosition(ctx, queueID)
-}
-
 // converters
 
 func toGormQueue(q models.Queue) gormmodels.Queue {
@@ -236,12 +193,4 @@ func fromGormQueue(q gormmodels.Queue) models.Queue {
 		MaxSize:         maxSize,
 		Status:          models.QueueStatus(q.Status),
 	}
-}
-
-func toSlotPointers(slots []models.QueueSlot) []*models.QueueSlot {
-	result := make([]*models.QueueSlot, 0, len(slots))
-	for i := range slots {
-		result = append(result, &slots[i])
-	}
-	return result
 }

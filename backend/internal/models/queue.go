@@ -25,7 +25,7 @@ type Queue struct {
 	ClosesAt        *time.Time
 	MaxSize         *uint32
 	Status          QueueStatus
-	Slots           []*QueueSlot
+	//Slots           *[]QueueSlot
 }
 
 type SlotStatus string
