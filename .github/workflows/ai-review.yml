@@ -218,7 +218,7 @@ jobs:
                   [[ "$file" == *"entity"* ]]; then
                   TZ_SECTION=$(echo "$TZ_CONTENT" | grep -A 100 "3\.3" | \
                     grep -B 10 -A 50 "Таблица" || echo "Раздел 3.3 не найден")
-                  REVIEW=$(ollama run codellama:7b-instruct \
+                  REVIEW=$(ollama run deepseek-coder:6.7b-instruct \
                     "Ты - эксперт по проверке моделей данных.
                     Сравни этот код с разделом 3.3 ТЗ.
                     КОД (модель данных):
@@ -239,7 +239,7 @@ jobs:
                   TZ_SECTION=$(echo "$TZ_CONTENT" | grep -A 30 "3\.3" | \
                     grep -A 20 "Индексы\|Ограничения" || \
                     echo "Информация не найдена")
-                  REVIEW=$(ollama run codellama:7b-instruct \
+                  REVIEW=$(ollama run deepseek-coder:6.7b-instruct \
                     "Ты - эксперт по проверке репозиториев.
                     Сравни этот код с разделом 3.3 ТЗ.
                     КОД (репозиторий):
@@ -257,7 +257,7 @@ jobs:
                     [[ "$file" == *"service"* ]]; then
                   TZ_SECTION=$(echo "$TZ_CONTENT" | grep -A 50 "2\.3\|3\.4" || \
                     echo "Разделы не найдены")
-                  REVIEW=$(ollama run codellama:7b-instruct \
+                  REVIEW=$(ollama run deepseek-coder:6.7b-instruct \
                     "Ты - эксперт по бизнес-логике ПО.
                     Сравни этот код с разделами 2.3 и 3.4 ТЗ.
                     КОД (бизнес-логика):
@@ -272,7 +272,7 @@ jobs:
                     3. Обрабатываются ли все ошибки?
                     4. Соответствует ли логика описанию ролей?")
                 else
-                  REVIEW=$(ollama run codellama:7b-instruct \
+                  REVIEW=$(ollama run deepseek-coder:6.7b-instruct \
                     "Проанализируй этот Go файл:
                     \`\`\`go
                     $CONTENT
@@ -290,7 +290,7 @@ jobs:
                   [[ "$file" == *"Component"* ]]; then
                   TZ_SECTION=$(echo "$TZ_CONTENT" | grep -A 30 "2\.3" || \
                     echo "Раздел 2.3 не найден")
-                  REVIEW=$(ollama run codellama:7b-instruct \
+                  REVIEW=$(ollama run deepseek-coder:6.7b-instruct \
                     "Ты - эксперт по React разработке.
                     Сравни этот код с разделом 2.3 ТЗ.
                     КОД (компонент):
@@ -305,7 +305,7 @@ jobs:
                     3. Есть ли проверка прав доступа?
                     4. Какие улучшения можно сделать?")
                 else
-                  REVIEW=$(ollama run codellama:7b-instruct \
+                  REVIEW=$(ollama run deepseek-coder:6.7b-instruct \
                     "Проанализируй этот JS/JSX файл кратко.")
                 fi
                 echo "$REVIEW" >> full_review.txt
@@ -314,7 +314,7 @@ jobs:
                 CONTENT=$(cat "$file")
                 TZ_SECTION=$(echo "$TZ_CONTENT" | grep -A 100 "3\.3" | \
                   grep -A 50 "Таблица" || echo "Таблицы не найдены")
-                REVIEW=$(ollama run codellama:7b-instruct \
+                REVIEW=$(ollama run cdeepseek-coder:6.7b-instruct \
                   "Ты - эксперт по SQL и миграциям БД.
                   Сравни этот код с разделом 3.3 ТЗ.
                   SQL/Миграция:
@@ -336,11 +336,11 @@ jobs:
           done <<< "$FILES_LIST"
           cat docs_review.txt >> full_review.txt
           echo -e "\n### 📊 Итоговая оценка:\n" >> full_review.txt
-          SUMMARY=$(ollama run llama2:7b \
+          SUMMARY=$(ollama run deepseek-coder:6.7b-instruct \
             "Ты - технический эксперт. Оцени этот PR.
             PR: ${{ steps.pr_data.outputs.TITLE }}
             Файлов: ${{ steps.files.outputs.COUNT }}
-            Ответь строго по пунктам на русском:
+            Ответь строго по пунктам только на русском языке:
             1. Соответствие ТЗ (оценка 1-10 и почему)
             2. Что сделано хорошо
             3. Что нужно исправить
