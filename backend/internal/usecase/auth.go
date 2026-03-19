@@ -218,7 +218,7 @@ func (a *AuthUseCase) generateRefreshToken(userID uuid.UUID) (string, models.Ref
 
 func (a *AuthUseCase) parseRefreshToken(ctx context.Context, tokenString string) (*jwt.RegisteredClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		if token.Method != jwt.SigningMethodHS256 {
 			return nil, errors.New("unexpected signing method")
 		}
 		return []byte(a.authCfg.RefreshSecretKey), nil
