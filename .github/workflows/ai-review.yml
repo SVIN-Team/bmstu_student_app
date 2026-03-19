@@ -140,14 +140,15 @@ jobs:
         id: pr_data
         run: |
           echo "TITLE=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
-          echo "BODY=${{ github.event.pull_request.body }}" >> $GITHUB_OUTPUT
+          echo "${{ github.event.pull_request.body }}" > pr_body.txt
+          echo "BODY<<EOF" >> $GITHUB_OUTPUT
+          cat pr_body.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
           echo "NUMBER=${{ github.event.pull_request.number }}" \
             >> $GITHUB_OUTPUT
           echo "BRANCH=${{ github.event.pull_request.head.ref }}" \
             >> $GITHUB_OUTPUT
-
-          ISSUE_NUMBER=$(echo "${{ github.event.pull_request.body }}" | \
-            grep -oE '#[0-9]+' | head -1 | tr -d '#')
+          ISSUE_NUMBER=$(grep -oE '#[0-9]+' pr_body.txt | head -1 | tr -d '#')
           echo "ISSUE_NUMBER=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
 
       - name: Получение измененных файлов
