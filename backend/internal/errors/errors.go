@@ -11,6 +11,7 @@ var (
 
 // Schedule
 var (
+
 	ErrLessonNotFound    = errors.New("lesson not found")
 	ErrSubjectNotFound   = errors.New("subject not found")
 	ErrGroupNotFound     = errors.New("group not found")
