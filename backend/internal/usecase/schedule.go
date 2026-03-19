@@ -328,8 +328,6 @@ func (s *ScheduleUseCase) validateLesson(ctx context.Context, lesson models.Less
 }
 
 func (s *ScheduleUseCase) enrichLessonDetails(ctx context.Context, lesson models.Lesson) (models.LessonDetails, error) {
-	details := models.LessonDetails{Lesson: lesson}
-
 	details, err := s.lessonRepo.GetLessonDetails(ctx, lesson.ID)
 	if err != nil {
 		logger.Errorf(ctx, "failed to get lesson details: %v", err)
