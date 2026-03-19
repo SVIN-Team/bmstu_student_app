@@ -1,7 +1,8 @@
 package config
 
 import (
-	"context"
+	"fmt"
+	"log"
 	"os"
 	"stud_hub/util/logger/logger"
 
@@ -10,6 +11,7 @@ import (
 
 type ApplicationConfig struct {
 	LoggerConfig LoggerConfig `yaml:"logger"`
+	AuthConfig   AuthConfig   `yaml:"auth"`
 }
 
 func LoadApplicationConfig(path string) (*ApplicationConfig, error) {
@@ -19,9 +21,8 @@ func LoadApplicationConfig(path string) (*ApplicationConfig, error) {
 		return cfg, err
 	}
 	defer func(file *os.File) {
-		err = file.Close()
-		if err != nil {
-			logger.Errorf(context.Background(), "Error while closing config file: %s", err)
+		if cerr := file.Close(); cerr != nil {
+			log.Printf("Error while closing config file: %s", cerr)
 		}
 	}(file)
 
@@ -32,6 +33,19 @@ func LoadApplicationConfig(path string) (*ApplicationConfig, error) {
 	if err != nil {
 		return cfg, err
 	}
+
+	accessSecret := os.Getenv("ACCESS_SECRET_KEY")
+	if accessSecret == "" {
+		return nil, fmt.Errorf("ACCESS_SECRET_KEY environment variable is not set")
+	}
+
+	refreshSecret := os.Getenv("REFRESH_SECRET_KEY")
+	if refreshSecret == "" {
+		return nil, fmt.Errorf("REFRESH_SECRET_KEY environment variable is not set")
+	}
+
+	cfg.AuthConfig.AccessSecretKey = accessSecret
+	cfg.AuthConfig.RefreshSecretKey = refreshSecret
 
 	return cfg, nil
 }

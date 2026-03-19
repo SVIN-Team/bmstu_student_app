@@ -1,0 +1,376 @@
+---
+name: "AI Ревью с проверкой по ТЗ"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    branches:
+      - develop
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  load-tz:
+    runs-on: ubuntu-latest
+    outputs:
+      tz_content: ${{ steps.get-tz.outputs.tz_content }}
+    steps:
+      - name: Checkout develop branch
+        uses: actions/checkout@v3
+        with:
+          ref: develop
+          fetch-depth: 1
+
+      - name: Get TZ from docs/tz.md
+        id: get-tz
+        run: |
+          if [ -f "docs/tz.md" ]; then
+            TZ_CONTENT=$(cat docs/tz.md)
+            echo "tz_content<<EOF" >> $GITHUB_OUTPUT
+            echo "$TZ_CONTENT" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "✅ ТЗ загружено из docs/tz.md"
+          else
+            echo "❌ Файл docs/tz.md не найден!"
+            exit 1
+          fi
+
+  review-issue:
+    needs: load-tz
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Установка и запуск Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve &
+          sleep 10
+          curl --retry 5 --retry-delay 5 \
+            --retry-connrefused http://localhost:11434/api/tags
+          ollama pull llama2:7b
+
+      - name: Получение данных issue
+        id: issue_data
+        run: |
+          echo "TITLE=${{ github.event.issue.title }}" >> $GITHUB_OUTPUT
+          echo "BODY=${{ github.event.issue.body }}" >> $GITHUB_OUTPUT
+          echo "NUMBER=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
+
+      - name: Проверка тикета на соответствие ТЗ
+        id: check_issue
+        env:
+          TZ_CONTENT: ${{ needs.load-tz.outputs.tz_content }}
+        run: |
+          cat > prompt.txt << 'EOF'
+          Ты - эксперт по проверке тикетов.
+          ТЕХНИЧЕСКОЕ ЗАДАНИЕ:
+          $TZ_CONTENT
+          ТИКЕТ:
+          Название: ${{ steps.issue_data.outputs.TITLE }}
+          Описание: ${{ steps.issue_data.outputs.BODY }}
+          Проанализируй тикет и ответь:
+          1. Соответствует ли тикет требованиям из ТЗ?
+          2. Какие разделы ТЗ относятся к этому тикету?
+          3. Всё ли учтено из ТЗ?
+          4. Чего не хватает?
+          5. Оценка соответствия от 1 до 10
+          Дай рекомендации по улучшению.
+          EOF
+
+          REVIEW=$(ollama run llama2:7b "$(cat prompt.txt)")
+
+          cat > issue_review.txt << EOF
+          ## AI Ревью тикета #${{ steps.issue_data.outputs.NUMBER }}
+
+          **Заголовок:** ${{ steps.issue_data.outputs.TITLE }}
+
+          ### Проверка соответствия Техническому заданию:
+
+          $REVIEW
+
+          ### Связанные разделы ТЗ:
+          - Раздел 2.3 (Роли пользователей)
+          - Раздел 3.3 (Модель данных)
+          - Раздел 3.4 (Авторизация)
+
+          ---
+          *Проверено по ТЗ из docs/tz.md*
+          EOF
+
+      - name: Опубликовать результат в тикет
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('issue_review.txt', 'utf8');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: review
+            });
+
+  review-pr:
+    needs: load-tz
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Установка и запуск Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve &
+          sleep 10
+          curl --retry 5 --retry-delay 5 \
+            --retry-connrefused http://localhost:11434/api/tags
+          ollama pull codellama:7b-instruct
+          ollama pull llama2:7b
+
+      - name: Получение данных PR
+        id: pr_data
+        run: |
+          echo "TITLE=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
+          echo "${{ github.event.pull_request.body }}" > pr_body.txt
+          echo "BODY<<EOF" >> $GITHUB_OUTPUT
+          cat pr_body.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "NUMBER=${{ github.event.pull_request.number }}" \
+            >> $GITHUB_OUTPUT
+          echo "BRANCH=${{ github.event.pull_request.head.ref }}" \
+            >> $GITHUB_OUTPUT
+          ISSUE_NUMBER=$(grep -oE '#[0-9]+' pr_body.txt | head -1 | tr -d '#')
+          echo "ISSUE_NUMBER=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Получение измененных файлов
+        id: files
+        run: |
+          FILES=$(git diff --name-only \
+            ${{ github.event.pull_request.base.sha }} \
+            ${{ github.event.pull_request.head.sha }})
+          echo "FILES<<EOF" >> $GITHUB_OUTPUT
+          echo "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "COUNT=$(echo "$FILES" | wc -l)" >> $GITHUB_OUTPUT
+
+      - name: Проверка документации в /docs/
+        id: check_docs
+        run: |
+          echo "### Проверка документации" > docs_review.txt
+          DOCS_CHANGED=$(echo "${{ steps.files.outputs.FILES }}" | \
+            grep "^docs/" || true)
+
+          if [ -n "$DOCS_CHANGED" ]; then
+            echo "**Изменения в документации:**" >> docs_review.txt
+            for file in $DOCS_CHANGED; do
+              if [ -f "$file" ]; then
+                echo -e "\n#### Файл: \`$file\`" >> docs_review.txt
+                CONTENT=$(cat "$file" | head -500)
+                REVIEW=$(ollama run llama2:7b \
+                  "Проверь документацию:
+          Файл: $file
+          Содержимое:
+          $CONTENT
+          Оцени:
+          1. Понятность
+          2. Полнота
+          3. Соответствие реальности
+          4. Нужны ли исправления
+          Ответь на только на русском языке.")
+                          echo "$REVIEW" >> docs_review.txt
+                        fi
+                      done
+                    else
+                      echo "Изменений в документации нет" >> docs_review.txt
+                    fi
+
+      - name: Анализ кода на соответствие ТЗ
+        id: code_review
+        env:
+          TZ_CONTENT: ${{ needs.load-tz.outputs.tz_content }}
+        run: |
+          cat > full_review.txt << 'EOF'
+          ## Полное AI Ревью PR #${{ steps.pr_data.outputs.NUMBER }}
+          **Заголовок:** ${{ steps.pr_data.outputs.TITLE }}
+          **Ветка:** ${{ steps.pr_data.outputs.BRANCH }}
+          **Изменено файлов:** ${{ steps.files.outputs.COUNT }}
+          ---
+          ### Проверка по Техническому заданию:
+          **ТЗ загружено из:** `docs/tz.md`
+          EOF
+          echo -e "\n### 🔍 Анализ изменений:\n" >> full_review.txt
+          FILES_LIST="${{ steps.files.outputs.FILES }}"
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              echo -e "\n#### Файл: \`$file\`" >> full_review.txt
+              if [[ "$file" == *.go ]]; then
+                CONTENT=$(cat "$file" | head -500)
+                REVIEW=$(ollama run codellama:7b-instruct \
+                  "Проверь код по ТЗ:
+          Разделы: 3.3, 3.4, 3.5
+          Код:
+          $CONTENT
+          Оцени:
+          1. Соответствие ТЗ?
+          2. Все требования реализованы?
+          3. Нужны доработки?
+          Ответь только на русском языке.")
+                    echo "**Соответствие ТЗ:**" >> full_review.txt
+                    echo "$REVIEW" >> full_review.txt
+                  elif [[ "$file" == *.js ]] || [[ "$file" == *.jsx ]]; then
+                    CONTENT=$(cat "$file" | head -500)
+                    REVIEW=$(ollama run codellama:7b-instruct \
+                      "Проверь frontend код:
+          Раздел 2.3
+          Код:
+          $CONTENT
+          Оцени функционал для ролей пользователей.
+          Ответь только на русском языке.")
+                    echo "$REVIEW" >> full_review.txt
+                  elif [[ "$file" == *.sql ]] || \
+                    [[ "$file" == *migration* ]]; then
+                    CONTENT=$(cat "$file")
+                    REVIEW=$(ollama run codellama:7b-instruct \
+                      "Проверь миграцию БД:
+          Раздел 3.3
+          Миграция:
+          $CONTENT
+          Проверь таблицы, типы данных, индексы.
+          Ответь только на русском языке.")
+                    echo "$REVIEW" >> full_review.txt
+                  fi
+                  echo -e "\n---" >> full_review.txt
+                fi
+              done <<< "$FILES_LIST"
+              cat docs_review.txt >> full_review.txt
+              echo -e "\n### 📊 Итоговая оценка:\n" >> full_review.txt
+              SUMMARY=$(ollama run llama2:7b \
+                "Оцени PR:
+          1. Соответствие ТЗ (1-10);
+          2. Что хорошо;
+          3. Что исправить;
+          4. Можно ли мержить?
+          PR: ${{ steps.pr_data.outputs.TITLE }}
+          Файлов: ${{ steps.files.outputs.COUNT }}
+          Ответь кратко только на русском языке.")
+              echo "$SUMMARY" >> full_review.txt
+
+      - name: Опубликовать полное ревью
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('full_review.txt', 'utf8');
+            const issueNumber = '${{ steps.pr_data.outputs.ISSUE_NUMBER }}';
+            let body = review;
+            if (issueNumber && issueNumber !== '') {
+              body += `\n\n**Связанный тикет:** #${issueNumber}`;
+            }
+            body += '\n\n---\n* Проверено по ТЗ из `docs/tz.md`*';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
+  review-all-docs:
+    needs: load-tz
+    if: >
+      github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.title, 'docs')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v3
+        with:
+          ref: develop
+
+      - name: Установка и запуск Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve &
+          sleep 10
+          curl --retry 5 --retry-delay 5 \
+            --retry-connrefused http://localhost:11434/api/tags
+          ollama pull llama2:7b
+
+      - name: Проверка всей документации
+        run: |
+          echo "# Полная проверка документации" > docs_full_review.txt
+          echo "" >> docs_full_review.txt
+          echo "**Ветка:** develop" >> docs_full_review.txt
+          echo "**Путь:** /docs/" >> docs_full_review.txt
+          echo "" >> docs_full_review.txt
+
+          DOCS_FILES=$(find docs -name "*.md" | sort)
+
+          for doc in $DOCS_FILES; do
+            echo "## Проверка: \`$doc\`" >> docs_full_review.txt
+            echo "" >> docs_full_review.txt
+
+            if [ -f "$doc" ]; then
+              CONTENT=$(cat "$doc" | head -1000)
+              case "$doc" in
+                *tz.md*)
+                  REVIEW=$(ollama run llama2:7b \
+                    "Проверь структуру ТЗ:
+          Должны быть разделы:
+          1. Глоссарий
+          2. Продуктовое описание
+          3. Техническое описание
+          4. Условия эксплуатации
+          5. Правила выгрузки
+          6. История изменений
+          Содержимое:
+          $CONTENT
+          Что пропущено?")
+                            ;;
+                          *endpoints.md*)
+                            REVIEW=$(ollama run llama2:7b \
+                              "Проверь документацию API:
+          Должны быть эндпоинты для:
+          - /auth
+          - /queues
+          - /slots
+          - /lessons
+          - /users
+          Содержимое:
+          $CONTENT
+          Все ли описаны?")
+                            ;;
+                          *)
+                            REVIEW=$(ollama run llama2:7b \
+                              "Оцени качество документации.
+          Содержимое:
+          $CONTENT
+          Ответь на только на русском языке.")
+                            ;;
+                        esac
+                        echo "$REVIEW" >> docs_full_review.txt
+                        echo "" >> docs_full_review.txt
+                        echo "---" >> docs_full_review.txt
+                      fi
+                    done
+
+      - name: Опубликовать ревью документации
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('docs_full_review.txt', 'utf8');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: review + '\n\n* Проверка документации завершена*'
+            })
