@@ -1,8 +1,8 @@
 package config
 
 type RepositoryConfig struct {
-	PostgresConfig
-	RedisConfig
+	PostgresConfig `yaml:",inline"`
+	RedisConfig    `yaml:",inline"`
 }
 
 type PostgresConfig struct {
@@ -10,7 +10,5 @@ type PostgresConfig struct {
 }
 
 type RedisConfig struct {
-	RedisServer    string `yaml:"redis_connection_string"`
-	RedisPassword  string `yaml:"redis_connection_string"`
-	DatabaseNumber int
+	RedisConnectionString string `yaml:"redis_connection_string"`
 }

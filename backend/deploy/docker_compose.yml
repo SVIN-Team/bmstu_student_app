@@ -24,25 +24,21 @@ services:
     ports:
       - "6379:6379"
 
-  #it is better to create Dockerfile but this is just for testing :P
   app:
-    image: golang:1.25
+    build:
+      context: ..
+      dockerfile: Dockerfile
     container_name: stud_hub_app
-    working_dir: /app
-    restart: unless-stopped
     depends_on:
       - postgres
       - redis
-    env_file:
-      - .env
     environment:
       POSTGRES_CONNECTION_STRING: ${POSTGRES_CONNECTION_STRING}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_CONNECTION_STRING: ${REDIS_CONNECTION_STRING}
       ACCESS_SECRET_KEY: ${ACCESS_SECRET_KEY}
       REFRESH_SECRET_KEY: ${REFRESH_SECRET_KEY}
     volumes:
-      - ..:/app
-    command: ["go", "run", "./cmd/main.go", "--config", "deploy/config.yaml"]
+      - ../deploy/config.yaml:/app/deploy/config.yaml:ro
 
 volumes:
   postgres_data:

@@ -1,0 +1,10 @@
+logger:
+  level: info
+
+auth:
+  access_life_time: 15m
+  refresh_life_time: 168h
+
+repository:
+  postgres_connection_string: from_env
+  redis_connection_string: redis://localhost:6379/0

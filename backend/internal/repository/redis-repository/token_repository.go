@@ -20,12 +20,13 @@ const (
 )
 
 func InitRedis(ctx context.Context, config *config.RedisConfig) (*redis.Client, error) {
-	client := redis.NewClient(&redis.Options{
-			Addr:     config.RedisServer,    // Redis server address
-			Password: config.RedisPassword,  // No password set
-			DB:       config.DatabaseNumber, // Use the default DB
-		})
-	_, err := client.Ping(ctx).Result()
+	options, err := redis.ParseURL(config.RedisConnectionString)
+	if err != nil {
+		logger.Errorf(ctx, "could not read connection string: %v", err)
+		return nil, err
+	}
+	client := redis.NewClient(options)
+	_, err = client.Ping(ctx).Result()
 	if err != nil {
 		logger.Errorf(ctx, "could not connect to redis: %v", err)
 		return nil, err

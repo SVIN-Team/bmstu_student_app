@@ -52,31 +52,32 @@ func Run(cfg *config.ApplicationConfig) {
 	_ = usecase.NewQueueUseCase(queue_repo, queue_slots_repo, user_repo)
 
 	logger.Infof(ctx, "Приложение запущено! ^w^")
-	go tmp_app(ctx, auth)
+	tmp_app(ctx, auth)
 }
 
 
 func tmp_app(ctx context.Context, auth *usecase.AuthUseCase) {
 	ticker := time.NewTicker(time.Second * 10)
-	select {
-	case <-ctx.Done(): {
-		return
-	}
-	case <-ticker.C: {
-		logger.Infof(ctx, "Создать тестового пользователя")
-		a, b, err := auth.SignUp(ctx, models.User{
-			FirstName: "Test",
-			LastName: "Dog",
-			Patronymic: "Patron",
-			Email: fmt.Sprintf("email@%s.com",time.Now().String()),
-		})
-		if err != nil {
-			logger.Errorf(ctx, "cannot create user: %v", err)
-		} else {
-			logger.Infof(ctx, "created user, got the %s and %s as tokens", a, b)
+	for {
+		select {
+		case <-ctx.Done(): {
+			break
+		}
+		case <-ticker.C: {
+			logger.Infof(ctx, "Создать тестового пользователя")
+			a, b, err := auth.SignUp(ctx, models.User{
+				FirstName: "Test",
+				LastName: "Dog",
+				Patronymic: "Patron",
+				PasswordHash: "password",
+				Email: fmt.Sprintf("email@%s.com",time.Now().String()),
+			})
+			if err != nil {
+				logger.Errorf(ctx, "cannot create user: %v", err)
+			} else {
+				logger.Infof(ctx, "created user, got the %s and %s as tokens", a, b)
+			}
+		}
 		}
 	}
-	}
-	
-	logger.Infof(ctx, "Всё!")
 }
