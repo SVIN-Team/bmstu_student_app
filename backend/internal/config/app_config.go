@@ -11,6 +11,7 @@ import (
 type ApplicationConfig struct {
 	LoggerConfig LoggerConfig `yaml:"logger"`
 	AuthConfig   AuthConfig   `yaml:"auth"`
+	RepositoryConfig RepositoryConfig `yaml:"repository"`
 }
 
 func LoadApplicationConfig(path string) (*ApplicationConfig, error) {
