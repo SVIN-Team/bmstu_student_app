@@ -47,5 +47,18 @@ func LoadApplicationConfig(path string) (*ApplicationConfig, error) {
 	cfg.AuthConfig.AccessSecretKey = accessSecret
 	cfg.AuthConfig.RefreshSecretKey = refreshSecret
 
+	postgres_connection_string := os.Getenv("POSTGRES_CONNECTION_STRING")
+	if postgres_connection_string == "" {
+		return nil, fmt.Errorf("POSTGRES_CONNECTION_STRING environment variable is not set")
+	}
+
+	redis_connection_string := os.Getenv("REDIS_PASSWORD")
+	if refreshSecret == "" {
+		return nil, fmt.Errorf("REDIS_PASSWORD environment variable is not set")
+	}
+
+	cfg.RepositoryConfig.PostgresConnectionString = postgres_connection_string
+	cfg.RepositoryConfig.RedisPassword = redis_connection_string
+
 	return cfg, nil
 }

@@ -2,6 +2,7 @@ package gormrepository
 
 import (
 	"context"
+	"stud_hub/internal/config"
 	gormmodels "stud_hub/internal/repository/gorm-models"
 	"stud_hub/util/logger"
 
@@ -10,8 +11,8 @@ import (
 )
 
 // CreateDB initializes a GORM PostgreSQL connection and runs automigrations for all models.
-func CreateDB(ctx context.Context, connectionString string) (*gorm.DB, error) {
-	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{})
+func CreateDB(ctx context.Context, cfg *config.PostgresConfig) (*gorm.DB, error) {
+	db, err := gorm.Open(postgres.Open(cfg.PostgresConnectionString), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
@@ -29,6 +30,6 @@ func CreateDB(ctx context.Context, connectionString string) (*gorm.DB, error) {
 		logger.Errorf(ctx, "gorm auto-migrate failed: %v", err)
 		return nil, err
 	}
-
+	logger.Errorf(ctx, "postgres connected successfully")
 	return db, nil
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"stud_hub/internal/config"
 	autherrors "stud_hub/internal/errors"
 	"stud_hub/internal/models"
 	"stud_hub/util/logger"
@@ -17,6 +18,22 @@ const (
 	refreshTokenKeyPrefix = "refresh_token:"
 	userTokensKeyPrefix   = "user_refresh_tokens:"
 )
+
+func InitRedis(ctx context.Context, config *config.RedisConfig) (*redis.Client, error) {
+	client := redis.NewClient(&redis.Options{
+			Addr:     config.RedisServer,    // Redis server address
+			Password: config.RedisPassword,  // No password set
+			DB:       config.DatabaseNumber, // Use the default DB
+		})
+	_, err := client.Ping(ctx).Result()
+	if err != nil {
+		logger.Errorf(ctx, "could not connect to redis: %v", err)
+		return nil, err
+	}
+
+	logger.Infof(ctx, "successfully connected to redis")
+	return client, nil
+}
 
 // TokenRepository stores refresh tokens in Redis.
 type TokenRepository struct {
