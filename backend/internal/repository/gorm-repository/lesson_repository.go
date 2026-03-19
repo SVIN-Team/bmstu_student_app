@@ -161,7 +161,7 @@ func (r *LessonRepository) GetLessonDetails(ctx context.Context, id uuid.UUID) (
 	return models.LessonDetails{
 		Lesson:      lesson,
 		GroupName:   l.Group.Name,
-		TeacherName: l.Teacher.FullName,
+		TeacherName: l.Teacher.Name(),
 		SubjectName: l.Subject.Name,
 		RoomName:    roomName,
 		QueueID:     queueID,

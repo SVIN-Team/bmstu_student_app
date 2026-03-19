@@ -48,8 +48,11 @@ func (r *UserRepository) UpdateUser(ctx context.Context, user models.User) (mode
 		UpdateField("email", gUser.Email).
 		UpdateField("first_name", gUser.FirstName).
 		UpdateField("last_name", gUser.LastName).
+		UpdateField("patronymic", gUser.Patronymic).
 		UpdateValue("role", gUser.Role).
-		UpdatePtrUUID("group_id", gUser.GroupID)
+		UpdatePtrUUID("group_id", gUser.GroupID).
+		UpdateValue("is_blocked", user.IsBlocked)
+		
 
 	if gUser.PasswordHash != nil && *gUser.PasswordHash != "" {
 		builder.UpdateValue("password_hash", gUser.PasswordHash)
@@ -92,7 +95,9 @@ func toGormUser(u models.User) gormmodels.User {
 		PasswordHash: password,
 		FirstName:    u.FirstName,
 		LastName:     u.LastName,
+		Patronymic:   u.Patronymic,
 		Role:         gormmodels.UserRole(u.Role),
+		IsBlocked:    u.IsBlocked,
 		GroupID:      nullableUUID(u.GroupID),
 		CreatedAt:    u.CreatedAt,
 	}
@@ -115,7 +120,9 @@ func fromGormUser(u gormmodels.User) models.User {
 		FirstName:    u.FirstName,
 		LastName:     u.LastName,
 		Role:         models.RoleType(u.Role),
+		Patronymic:   u.Patronymic,
 		GroupID:      groupID,
+		IsBlocked:    u.IsBlocked,
 		CreatedAt:    u.CreatedAt,
 	}
 }

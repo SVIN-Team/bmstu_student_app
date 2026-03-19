@@ -30,6 +30,6 @@ func CreateDB(ctx context.Context, cfg *config.PostgresConfig) (*gorm.DB, error)
 		logger.Errorf(ctx, "gorm auto-migrate failed: %v", err)
 		return nil, err
 	}
-	logger.Infof(ctx, "successfullly connected to postgres")
+	logger.Infof(ctx, "successfully connected to postgres")
 	return db, nil
 }

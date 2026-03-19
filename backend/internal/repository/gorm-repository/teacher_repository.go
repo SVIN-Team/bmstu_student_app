@@ -2,7 +2,6 @@ package gormrepository
 
 import (
 	"context"
-	"strings"
 
 	apperrors "stud_hub/internal/errors"
 	"stud_hub/internal/models"
@@ -31,59 +30,29 @@ func (r *TeacherRepository) GetByID(ctx context.Context, id uuid.UUID) (models.T
 		logger.Errorf(ctx, "gorm: failed to get teacher %s: %v", id, err)
 		return models.Teacher{}, apperrors.ErrInternalServer
 	}
-
-	first, last, patronymic := splitFullName(t.FullName)
 	return models.Teacher{
 		ID:         t.ID,
-		FirstName:  first,
-		LastName:   last,
-		Patronymic: patronymic,
+		FirstName:  t.FirstName,
+		LastName:   t.LastName,
+		Patronymic: t.Patronymic,
 	}, nil
 }
 
 func (r *TeacherRepository) GetOrCreateByFullName(ctx context.Context, lastName, firstName, patronymic string) (uuid.UUID, error) {
-	fullName := buildFullName(lastName, firstName, patronymic)
-
 	var t gormmodels.Teacher
-	err := r.db.WithContext(ctx).First(&t, "full_name = ?", fullName).Error
+	err := r.db.WithContext(ctx).Where("first_name = ?", firstName).Where("last_name = ?", lastName).Where("patronymic = ?", patronymic).First(&t).Error
 	if err == nil {
 		return t.ID, nil
 	}
 	if err != gorm.ErrRecordNotFound {
-		logger.Errorf(ctx, "gorm: failed to find teacher %s: %v", fullName, err)
+		logger.Errorf(ctx, "gorm: failed to find teacher %s: %v", lastName, err)
 		return uuid.UUID{}, apperrors.ErrInternalServer
 	}
 
-	t = gormmodels.Teacher{FullName: fullName}
+	t = gormmodels.Teacher{LastName: lastName, FirstName: firstName, Patronymic: patronymic}
 	if err := r.db.WithContext(ctx).Create(&t).Error; err != nil {
-		logger.Errorf(ctx, "gorm: failed to create teacher %s: %v", fullName, err)
+		logger.Errorf(ctx, "gorm: failed to create teacher %s: %v", lastName, err)
 		return uuid.UUID{}, apperrors.ErrInternalServer
 	}
 	return t.ID, nil
-}
-
-func buildFullName(last, first, patronymic string) string {
-	parts := []string{last, first, patronymic}
-	out := make([]string, 0, len(parts))
-	for _, p := range parts {
-		p = strings.TrimSpace(p)
-		if p != "" {
-			out = append(out, p)
-		}
-	}
-	return strings.Join(out, " ")
-}
-
-func splitFullName(full string) (first, last, patronymic string) {
-	parts := strings.Fields(full)
-	switch len(parts) {
-	case 0:
-		return "", "", ""
-	case 1:
-		return parts[0], parts[0], ""
-	case 2:
-		return parts[1], parts[0], ""
-	default:
-		return parts[1], parts[0], strings.Join(parts[2:], " ")
-	}
 }

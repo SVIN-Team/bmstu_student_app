@@ -50,6 +50,7 @@ CREATE TABLE users (
     password_hash VARCHAR(60),
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
+    patronymic VARCHAR(100),
     role user_role NOT NULL DEFAULT 'student',
     group_id UUID,
     is_blocked BOOLEAN NOT NULL DEFAULT FALSE,
@@ -75,7 +76,9 @@ CREATE TABLE subjects (
 
 CREATE TABLE teachers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    full_name VARCHAR(255) NOT NULL
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    patronymic VARCHAR(100)
 );
 
 CREATE TABLE rooms (
