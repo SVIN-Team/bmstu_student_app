@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tz_content: ${{ steps.get-tz.outputs.tz_content }}
+      api_docs: ${{ steps.get_api_docs.outputs.api_docs }}
     steps:
       - name: Checkout develop branch
         uses: actions/checkout@v3
@@ -26,7 +27,7 @@ jobs:
           ref: develop
           fetch-depth: 1
 
-      - name: Get TZ from docs/tz.md
+      - name: Получить ТЗ из docs/tz.md
         id: get-tz
         run: |
           if [ -f "docs/tz.md" ]; then
@@ -39,9 +40,22 @@ jobs:
             echo "❌ Файл docs/tz.md не найден!"
             exit 1
           fi
+      - name: Загрузка документации API
+        id: get_api_docs
+        run: |
+          if [ -f "docs/endpoints.md" ]; then
+            API_DOCS=$(cat docs/endpoints.md)
+            echo "api_docs<<EOF" >> $GITHUB_OUTPUT
+            echo "$API_DOCS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "✅ Документация API загружена из docs/endpoints.md"
+          else
+            echo "❌ Файл docs/endpoints.md не найден!"
+            exit 1
+          fi
 
   review-issue:
-    needs: load-tz
+    needs: [load-tz]
     if: github.event_name == 'issues'
     runs-on: ubuntu-latest
     steps:
@@ -197,6 +211,7 @@ jobs:
         id: code_review
         env:
           TZ_CONTENT: ${{ needs.load-tz.outputs.tz_content }}
+          API_DOCS: ${{ needs.load-tz.outputs.api_docs }}
         run: |
           cat > full_review.txt << 'EOF'
           ## Полное AI Ревью PR #${{ steps.pr_data.outputs.NUMBER }}
@@ -292,10 +307,20 @@ jobs:
                   REVIEW=$(ollama run deepseek-coder:6.7b-instruct \
                     "Отвечай подробно и по делу, не нужно общих фраз.
                     И не отказывайся в ответе, я хочу чтобы ты проверил.
-                    Проанализируй этот Go файл:
+                    Ты - эксперт по Go разработке.
+                    Проанализируй этот файл в контексте проекта:
                     \`\`\`go
                     $CONTENT
                     \`\`\`
+                    КОНТЕКСТ ПРОЕКТА ИЗ ТЗ:
+                      1. Технологический стек: Go 1.21+, Gin framework, \
+                      PostgreSQL, Clean Architecture
+                      2. Архитектура: Handlers → Usecase → Repository
+                      3. Требования к безопасности:
+                        - JWT токены (HS256)
+                        - bcrypt для паролей
+                        - rate limiting
+                        - валидация входных данных
                     Ответь на русском кратко:
                     1. Что делает этот файл?
                     2. Есть ли очевидные ошибки?
@@ -306,34 +331,56 @@ jobs:
                 echo "**Анализ:**" >> full_review.txt
                 echo "$REVIEW" >> full_review.txt
               elif [[ "$file" == *.js ]] || [[ "$file" == *.jsx ]]; then
-                CONTENT=$(cat "$file" | head -500)
-                if [[ "$file" == *"component"* ]] || \
-                  [[ "$file" == *"Component"* ]]; then
-                  TZ_SECTION=$(echo "$TZ_CONTENT" | grep -A 30 "2\.3" || \
-                    echo "Раздел 2.3 не найден")
-                  REVIEW=$(ollama run deepseek-coder:6.7b-instruct \
-                    "Ты - эксперт по React разработке.
-                    Сравни этот код с разделом 2.3 ТЗ.
-                    Отвечай подробно и по делу, не нужно общих фраз.
-                    И не отказывайся в ответе, я хочу чтобы ты проверил.
-                    КОД (компонент):
-                    \`\`\`jsx
-                    $CONTENT
-                    \`\`\`
-                    ТЗ (роли пользователей):
-                    $TZ_SECTION
-                    Проанализируй и ответь на русском:
-                    1. Для какой роли этот компонент?
-                    2. Реализует ли он функционал из ТЗ?
-                    3. Есть ли проверка прав доступа?
-                    4. Какие улучшения можно сделать?")
-                else
-                  REVIEW=$(ollama run deepseek-coder:6.7b-instruct \
-                    "Отвечай подробно и по делу, не нужно общих фраз.
-                    И не отказывайся в ответе, я хочу чтобы ты проверил.
-                    Проанализируй этот JS/JSX файл.")
-                fi
-                echo "$REVIEW" >> full_review.txt
+                  CONTENT=$(cat "$file" | head -500)
+                  if [[ "$file" == *"component"* ]] || \
+                    [[ "$file" == *"Component"* ]]; then
+                    TZ_SECTION=$(echo "$TZ_CONTENT" | grep -A 50 "2\.3" || \
+                      echo "Раздел 2.3 не найден")
+                    REVIEW=$(ollama run deepseek-coder:6.7b-instruct \
+                      "Ты - эксперт по React разработке.
+                      Отвечай подробно и по делу, не нужно общих фраз.
+                      И не отказывайся в ответе, я хочу чтобы ты проверил.
+                      Проанализируй этот код.
+                      КОД (компонент):
+                      \`\`\`jsx
+                      $CONTENT
+                      \`\`\`
+                      ТЕХНИЧЕСКОЕ ЗАДАНИЕ (раздел 2.3 - Роли пользователей):
+                      $TZ_SECTION
+                      ДОКУМЕНТАЦИЯ API (эндпоинты):
+                      $API_DOCS
+                      Проанализируй и ответь только на русском языке:
+                      1. ДЛЯ КАКОЙ РОЛИ:
+                        - Какой роли пользователей соответствует компонент?
+                        - Реализует ли функционал из ТЗ для этой роли?
+                      2. РАБОТА С API:
+                        - Какие эндпоинты используются?
+                        - Соответствуют ли они документации?
+                        - Правильно ли обрабатываются ответы?
+                      3. БЕЗОПАСНОСТЬ:
+                        - Есть ли проверка прав доступа?
+                        - Где хранятся токены?
+                        - Защищены ли маршруты?
+                      4. УЛУЧШЕНИЯ:
+                        - Что можно сделать лучше?
+                        - Есть ли потенциальные проблемы?
+                      Используй конкретику из ТЗ и API документации.")
+                  else
+                    REVIEW=$(ollama run deepseek-coder:6.7b-instruct \
+                      "Проанализируй этот JS/JSX файл:
+                      КОД:
+                      \`\`\`jsx
+                      $CONTENT
+                      \`\`\`
+                      ДОКУМЕНТАЦИЯ API:
+                      $API_DOCS
+                      Ответь на русском:
+                      1. Что делает этот файл?
+                      2. Какие API эндпоинты использует?
+                      3. Есть ли очевидные ошибки?
+                      4. Что можно улучшить?")
+                  fi
+                  echo "$REVIEW" >> full_review.txt
               elif [[ "$file" == *.sql ]] || \
                   [[ "$file" == *migration* ]]; then
                 CONTENT=$(cat "$file")
