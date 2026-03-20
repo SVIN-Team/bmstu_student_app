@@ -418,6 +418,7 @@ jobs:
             fi
           done <<< "$FILES_LIST"
           cat docs_review.txt >> full_review.txt
+          echo -e "\n### 📊 Итоговая оценка:\n" >> full_review.txt
           SUMMARY=$(ollama run deepseek-coder:6.7b-instruct \
             "Ты - AI ревьюер, который уже проанализировал все файлы выше.
             Сейчас твоя задача - дать ИТОГОВУЮ ОЦЕНКУ по результатам анализа.
@@ -432,6 +433,9 @@ jobs:
             3. Что нужно исправить: [конкретные замечания]
             4. Решение: [Можно мержить/Требуется исправление] - [почему]
             Не пиши 'я не могу оценить' - ты уже всё проанализировал выше.")
+          echo "$SUMMARY" >> full_review.txt
+          echo "ИТОГОВАЯ ОЦЕНКА:"
+          echo "$SUMMARY"
 
       - name: Опубликовать полное ревью
         uses: actions/github-script@v6
