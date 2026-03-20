@@ -417,11 +417,14 @@ jobs:
               echo -e "\n---" >> full_review.txt
             fi
           done <<< "$FILES_LIST"
+          FULL_ANALYSIS=$(cat full_review.txt)
           cat docs_review.txt >> full_review.txt
           echo -e "\n### 📊 Итоговая оценка:\n" >> full_review.txt
           SUMMARY=$(ollama run deepseek-coder:6.7b-instruct \
             "Ты - AI ревьюер, который уже проанализировал все файлы выше.
             Сейчас твоя задача - дать ИТОГОВУЮ ОЦЕНКУ по результатам анализа.
+            Вот полный анализ:
+            $FULL_ANALYSIS
             Информация о PR:
             - Название: ${{ steps.pr_data.outputs.TITLE }}
             - Файлов изменено: ${{ steps.files.outputs.COUNT }}
