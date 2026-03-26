@@ -13,7 +13,7 @@ import (
 )
 
 type QueueRepository struct {
-	db        *gorm.DB
+	db *gorm.DB
 }
 
 func NewQueueRepository(db *gorm.DB) *QueueRepository {
@@ -114,14 +114,12 @@ func (r *QueueRepository) Update(ctx context.Context, queue models.Queue) error 
 		UpdateUUID("created_by", gQueue.CreatedBy).
 		UpdateTime("created_at", gQueue.CreatedAt).
 		UpdateTime("opens_at", gQueue.OpensAt).
-		UpdateValue("closes_at", gQueue.ClosesAt).
-		UpdateValue("max_size", gQueue.MaxSize).
 		UpdateValue("status", gQueue.Status)
 
 	updates := builder.Build()
-	if len(updates) == 0 {
-		return nil
-	}
+	// For nullable fields, always include them in updates so that nil values result in NULL in DB.
+	updates["closes_at"] = gQueue.ClosesAt
+	updates["max_size"] = gQueue.MaxSize
 
 	if err := r.db.WithContext(ctx).Model(&gormmodels.Queue{ID: queue.ID}).Updates(updates).Error; err != nil {
 		logger.Errorf(ctx, "gorm: failed to update queue %s: %v", queue.ID, err)
@@ -137,4 +135,3 @@ func (r *QueueRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	return nil
 }
-

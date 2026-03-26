@@ -22,7 +22,7 @@ type TokenRepository interface {
 }
 
 type UserRepository interface {
-	UserRepositoryForQueue
+	UserReader
 	CreateUser(ctx context.Context, user models.User) (uuid.UUID, error)
 	UpdateUser(ctx context.Context, user models.User) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)

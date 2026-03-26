@@ -35,20 +35,20 @@ type QueueRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-type UserRepositoryForQueue interface {
+type UserReader interface {
 	GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
 }
 
 type QueueUseCase struct {
-	queueRepo QueueRepository
+	queueRepo      QueueRepository
 	queueSlotsRepo QueueSlotsRepository
-	userRepo  UserRepositoryForQueue
+	userRepo       UserReader
 }
 
-func NewQueueUseCase(queueRepo QueueRepository, queueSlotsRepo QueueSlotsRepository, userRepo UserRepositoryForQueue) *QueueUseCase {
+func NewQueueUseCase(queueRepo QueueRepository, queueSlotsRepo QueueSlotsRepository, userRepo UserReader) *QueueUseCase {
 	return &QueueUseCase{
-		queueRepo: queueRepo,
-		userRepo:  userRepo,
+		queueRepo:      queueRepo,
+		userRepo:       userRepo,
 		queueSlotsRepo: queueSlotsRepo,
 	}
 }

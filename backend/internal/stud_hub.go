@@ -25,12 +25,12 @@ func Run(cfg *config.ApplicationConfig) {
 	logger.Debugf(ctx, "Debug")
 
 	db, err := gormrepository.CreateDB(ctx, &cfg.RepositoryConfig.PostgresConfig)
-	if err != nil{
+	if err != nil {
 		logger.Errorf(ctx, "fatal: cannot create database: %v", err)
 		return
 	}
 	rd, err := redisrepository.InitRedis(ctx, &cfg.RepositoryConfig.RedisConfig)
-	if err != nil{
+	if err != nil {
 		logger.Errorf(ctx, "fatal: cannot connect to redis: %v", err)
 		return
 	}
@@ -45,7 +45,6 @@ func Run(cfg *config.ApplicationConfig) {
 	queueSlotsRepo := gormrepository.NewQueueSlotsRepository(db)
 	lessonRepo := gormrepository.NewLessonRepository(db)
 
-
 	auth := usecase.NewAuthUseCase(tokenRepo, userRepo, cfg.AuthConfig)
 	_ = usecase.NewGroupUseCase(groupRepo)
 	_ = usecase.NewScheduleUseCase(lessonRepo, subjectRepo, groupRepo, teacherRepo, classroomRepo, queueRepo)
@@ -56,31 +55,32 @@ func Run(cfg *config.ApplicationConfig) {
 	}
 }
 
-
 func tmp_app(ctx context.Context, auth *usecase.AuthUseCase) {
 	ticker := time.NewTicker(time.Second * 10)
 	for {
 		select {
-		case <-ctx.Done(): {
-			logger.Infof(ctx, "stopped loop")
-			ticker.Stop()
-			return
-		}
-		case <-ticker.C: {
-			logger.Infof(ctx, "Создать тестового пользователя")
-			_, _, err := auth.SignUp(ctx, models.User{
-				FirstName: "Test",
-				LastName: "Dog",
-				Patronymic: "Patron",
-				PasswordHash: "password",
-				Email: fmt.Sprintf("email@%s.com",uuid.New().String()),
-			})
-			if err != nil {
-				logger.Errorf(ctx, "cannot create user: %v", err)
-			} else {
-				logger.Infof(ctx, "created user successfully")
+		case <-ctx.Done():
+			{
+				logger.Infof(ctx, "stopped loop")
+				ticker.Stop()
+				return
 			}
-		}
+		case <-ticker.C:
+			{
+				logger.Infof(ctx, "Создать тестового пользователя")
+				_, _, err := auth.SignUp(ctx, models.User{
+					FirstName:    "Test",
+					LastName:     "Dog",
+					Patronymic:   "Patron",
+					PasswordHash: "password",
+					Email:        fmt.Sprintf("email@%s.com", uuid.New().String()),
+				})
+				if err != nil {
+					logger.Errorf(ctx, "cannot create user: %v", err)
+				} else {
+					logger.Infof(ctx, "created user successfully")
+				}
+			}
 		}
 	}
 }

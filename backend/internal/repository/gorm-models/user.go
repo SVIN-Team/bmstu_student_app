@@ -19,7 +19,7 @@ type User struct {
 	IsBlocked    bool       `gorm:"column:is_blocked;not null;default:false"`
 	CreatedAt    time.Time  `gorm:"column:created_at;not null;autoCreateTime"`
 
-	Group        *Group     `gorm:"foreignKey:GroupID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Group *Group `gorm:"foreignKey:GroupID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 func (User) TableName() string {

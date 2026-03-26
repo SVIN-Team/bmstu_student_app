@@ -80,10 +80,28 @@ func (r *TokenRepository) SaveRefreshToken(ctx context.Context, token models.Ref
 		return autherrors.ErrInternalServer
 	}
 
+	currentTTL, err := r.client.TTL(ctx, userTokensKey(token.UserID)).Result()
+	if err != nil {
+		logger.Errorf(ctx, "failed to get TTL for user %s tokens set: %v", token.UserID, err)
+		return autherrors.ErrInternalServer
+	}
+
+	var setTTL time.Duration
+	switch {
+	case currentTTL == -1:
+		setTTL = 0
+	case currentTTL > ttl:
+		setTTL = currentTTL
+	default:
+		setTTL = ttl
+	}
+
 	pipe := r.client.TxPipeline()
 	pipe.Set(ctx, refreshTokenKey(token.ID), data, ttl)
 	pipe.SAdd(ctx, userTokensKey(token.UserID), token.ID.String())
-	pipe.Expire(ctx, userTokensKey(token.UserID), ttl)
+	if setTTL > 0 {
+		pipe.Expire(ctx, userTokensKey(token.UserID), setTTL)
+	}
 
 	if _, err = pipe.Exec(ctx); err != nil {
 		logger.Errorf(ctx, "failed to save refresh token %s in redis: %v", token.ID, err)

@@ -52,7 +52,6 @@ func (r *UserRepository) UpdateUser(ctx context.Context, user models.User) (mode
 		UpdateValue("role", gUser.Role).
 		SetPtrUUID("group_id", gUser.GroupID).
 		UpdateValue("is_blocked", user.IsBlocked)
-		
 
 	if gUser.PasswordHash != nil && *gUser.PasswordHash != "" {
 		builder.UpdateValue("password_hash", gUser.PasswordHash)
@@ -82,4 +81,3 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (mode
 	}
 	return gormmodels.FromGormUser(gUser), nil
 }
-
