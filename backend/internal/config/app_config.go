@@ -11,6 +11,8 @@ import (
 type ApplicationConfig struct {
 	LoggerConfig LoggerConfig `yaml:"logger"`
 	AuthConfig   AuthConfig   `yaml:"auth"`
+	RepositoryConfig RepositoryConfig `yaml:"repository"`
+	TestMode bool `yaml:"test_mode"`
 }
 
 func LoadApplicationConfig(path string) (*ApplicationConfig, error) {
@@ -45,6 +47,19 @@ func LoadApplicationConfig(path string) (*ApplicationConfig, error) {
 
 	cfg.AuthConfig.AccessSecretKey = accessSecret
 	cfg.AuthConfig.RefreshSecretKey = refreshSecret
+
+	postgresConnectionString := os.Getenv("POSTGRES_CONNECTION_STRING")
+	if postgresConnectionString == "" {
+		return nil, fmt.Errorf("POSTGRES_CONNECTION_STRING environment variable is not set")
+	}
+
+	redisConn := os.Getenv("REDIS_CONNECTION_STRING")
+	if redisConn == "" {
+		return nil, fmt.Errorf("REDIS_CONNECTION_STRING environment variable is not set")
+	}
+
+	cfg.RepositoryConfig.PostgresConnectionString = postgresConnectionString
+	cfg.RepositoryConfig.RedisConnectionString = redisConn
 
 	return cfg, nil
 }

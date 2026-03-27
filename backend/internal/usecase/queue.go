@@ -12,17 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type QueueRepository interface {
-	GetByID(ctx context.Context, id uuid.UUID) (models.Queue, error)
-	GetByIDWithSlots(ctx context.Context, id uuid.UUID) (models.Queue, error)
-	GetByGroupID(ctx context.Context, groupID uuid.UUID) ([]models.Queue, error)
-	GetByLessonID(ctx context.Context, lessonID uuid.UUID) (*models.Queue, error)
-	GetActiveByGroupAndSubject(ctx context.Context, groupID, subjectID uuid.UUID) (*models.Queue, error)
-	Create(ctx context.Context, queue models.Queue) (uuid.UUID, error)
-	Update(ctx context.Context, queue models.Queue) error
-	Delete(ctx context.Context, id uuid.UUID) error
-
-	// Slots
+type QueueSlotsRepository interface {
 	GetSlotByID(ctx context.Context, id uuid.UUID) (models.QueueSlot, error)
 	GetSlotByQueueAndStudent(ctx context.Context, queueID, studentID uuid.UUID) (*models.QueueSlot, error)
 	GetSlotsByQueueID(ctx context.Context, queueID uuid.UUID) ([]models.QueueSlot, error)
@@ -35,19 +25,31 @@ type QueueRepository interface {
 	GetLastPosition(ctx context.Context, queueID uuid.UUID) (int, error)
 }
 
-type UserRepositoryForQueue interface {
-	GetByID(ctx context.Context, id uuid.UUID) (models.User, error)
+type QueueRepository interface {
+	GetByID(ctx context.Context, id uuid.UUID) (models.Queue, error)
+	GetByGroupID(ctx context.Context, groupID uuid.UUID) ([]models.Queue, error)
+	GetByLessonID(ctx context.Context, lessonID uuid.UUID) (*models.Queue, error)
+	GetActiveByGroupAndSubject(ctx context.Context, groupID, subjectID uuid.UUID) (*models.Queue, error)
+	Create(ctx context.Context, queue models.Queue) (uuid.UUID, error)
+	Update(ctx context.Context, queue models.Queue) error
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+type UserReader interface {
+	GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
 }
 
 type QueueUseCase struct {
-	queueRepo QueueRepository
-	userRepo  UserRepositoryForQueue
+	queueRepo      QueueRepository
+	queueSlotsRepo QueueSlotsRepository
+	userRepo       UserReader
 }
 
-func NewQueueUseCase(queueRepo QueueRepository, userRepo UserRepositoryForQueue) *QueueUseCase {
+func NewQueueUseCase(queueRepo QueueRepository, queueSlotsRepo QueueSlotsRepository, userRepo UserReader) *QueueUseCase {
 	return &QueueUseCase{
-		queueRepo: queueRepo,
-		userRepo:  userRepo,
+		queueRepo:      queueRepo,
+		userRepo:       userRepo,
+		queueSlotsRepo: queueSlotsRepo,
 	}
 }
 
@@ -55,7 +57,7 @@ func NewQueueUseCase(queueRepo QueueRepository, userRepo UserRepositoryForQueue)
 
 // GetByID возвращает очередь по ID
 func (q *QueueUseCase) GetByID(ctx context.Context, queueID uuid.UUID) (models.Queue, error) {
-	queue, err := q.queueRepo.GetByIDWithSlots(ctx, queueID)
+	queue, err := q.queueRepo.GetByID(ctx, queueID)
 	if err != nil {
 		return models.Queue{}, apperrors.ErrQueueNotFound
 	}
@@ -83,7 +85,7 @@ func (q *QueueUseCase) GetActiveByGroupAndSubject(ctx context.Context, groupID, 
 
 // GetMyQueues возвращает очереди, в которых записан студент
 func (q *QueueUseCase) GetMyQueues(ctx context.Context, studentID uuid.UUID) ([]models.Queue, error) {
-	user, err := q.userRepo.GetByID(ctx, studentID)
+	user, err := q.userRepo.GetUserByID(ctx, studentID)
 	if err != nil {
 		return nil, apperrors.ErrUserNotFound
 	}
@@ -101,7 +103,7 @@ func (q *QueueUseCase) GetMyQueues(ctx context.Context, studentID uuid.UUID) ([]
 	// Фильтруем только те, где студент записан
 	var result []models.Queue
 	for _, queue := range queues {
-		slot, err := q.queueRepo.GetSlotByQueueAndStudent(ctx, queue.ID, studentID)
+		slot, err := q.queueSlotsRepo.GetSlotByQueueAndStudent(ctx, queue.ID, studentID)
 		if err != nil {
 			logger.Errorf(ctx, "failed to get slot for queue %s and student %s: %v", queue.ID, studentID, err)
 			return nil, apperrors.ErrInternalServer
@@ -305,7 +307,7 @@ func (q *QueueUseCase) SignUp(ctx context.Context, studentID, queueID uuid.UUID)
 	}
 
 	// Проверяем, что студент из той же группы
-	user, err := q.userRepo.GetByID(ctx, studentID)
+	user, err := q.userRepo.GetUserByID(ctx, studentID)
 	if err != nil {
 		return 0, apperrors.ErrUserNotFound
 	}
@@ -314,7 +316,7 @@ func (q *QueueUseCase) SignUp(ctx context.Context, studentID, queueID uuid.UUID)
 	}
 
 	// Проверяем, не записан ли уже
-	existingSlot, err := q.queueRepo.GetSlotByQueueAndStudent(ctx, queueID, studentID)
+	existingSlot, err := q.queueSlotsRepo.GetSlotByQueueAndStudent(ctx, queueID, studentID)
 	if err != nil {
 		logger.Errorf(ctx, "failed to get slot by queue and student: %v", err)
 		return 0, apperrors.ErrInternalServer
@@ -325,7 +327,7 @@ func (q *QueueUseCase) SignUp(ctx context.Context, studentID, queueID uuid.UUID)
 
 	// Проверяем лимит
 	if queue.MaxSize != nil {
-		count, err := q.queueRepo.GetSlotsCount(ctx, queueID)
+		count, err := q.queueSlotsRepo.GetSlotsCount(ctx, queueID)
 		if err != nil {
 			logger.Errorf(ctx, "failed to get slots count: %v", err)
 			return 0, apperrors.ErrInternalServer
@@ -344,7 +346,7 @@ func (q *QueueUseCase) SignUp(ctx context.Context, studentID, queueID uuid.UUID)
 		SignedUpAt: time.Now(),
 	}
 
-	newSlot, err := q.queueRepo.CreateSlot(ctx, slot)
+	newSlot, err := q.queueSlotsRepo.CreateSlot(ctx, slot)
 	if err != nil {
 		logger.Errorf(ctx, "failed to create slot: %v", err)
 		return 0, apperrors.ErrInternalServer
@@ -370,7 +372,7 @@ func (q *QueueUseCase) CancelSignUp(ctx context.Context, studentID, queueID uuid
 		return apperrors.ErrQueueClosed
 	}
 
-	slot, err := q.queueRepo.GetSlotByQueueAndStudent(ctx, queueID, studentID)
+	slot, err := q.queueSlotsRepo.GetSlotByQueueAndStudent(ctx, queueID, studentID)
 	if err != nil {
 		logger.Errorf(ctx, "failed to get slot by queue and student: %v", err)
 		return apperrors.ErrInternalServer
@@ -379,7 +381,7 @@ func (q *QueueUseCase) CancelSignUp(ctx context.Context, studentID, queueID uuid
 		return apperrors.ErrNotInQueue
 	}
 
-	if err := q.queueRepo.DeleteSlot(ctx, slot.ID); err != nil {
+	if err := q.queueSlotsRepo.DeleteSlot(ctx, slot.ID); err != nil {
 		logger.Errorf(ctx, "failed to delete slot: %v", err)
 		return apperrors.ErrInternalServer
 	}
@@ -392,7 +394,7 @@ func (q *QueueUseCase) CancelSignUp(ctx context.Context, studentID, queueID uuid
 
 // UpdateSlotStatus обновляет статус слота (сдал/не сдал/не явился)
 func (q *QueueUseCase) UpdateSlotStatus(ctx context.Context, headmanID, slotID uuid.UUID, status models.SlotStatus) error {
-	slot, err := q.queueRepo.GetSlotByID(ctx, slotID)
+	slot, err := q.queueSlotsRepo.GetSlotByID(ctx, slotID)
 	if err != nil {
 		return apperrors.ErrSlotNotFound
 	}
@@ -408,7 +410,7 @@ func (q *QueueUseCase) UpdateSlotStatus(ctx context.Context, headmanID, slotID u
 
 	slot.Status = status
 
-	if err := q.queueRepo.UpdateSlot(ctx, slot); err != nil {
+	if err := q.queueSlotsRepo.UpdateSlot(ctx, slot); err != nil {
 		logger.Errorf(ctx, "failed to update slot: %v", err)
 		return apperrors.ErrInternalServer
 	}
@@ -428,7 +430,7 @@ func (q *QueueUseCase) MarkPassedCount(ctx context.Context, headmanID, queueID u
 		return apperrors.ErrForbidden
 	}
 
-	slots, err := q.queueRepo.GetSlotsByQueueID(ctx, queueID)
+	slots, err := q.queueSlotsRepo.GetSlotsByQueueID(ctx, queueID)
 	if err != nil {
 		logger.Errorf(ctx, "failed to get slots: %v", err)
 		return apperrors.ErrInternalServer
@@ -460,7 +462,7 @@ func (q *QueueUseCase) MarkPassedCount(ctx context.Context, headmanID, queueID u
 
 		waitingIndex++
 
-		if err := q.queueRepo.UpdateSlot(ctx, slot); err != nil {
+		if err := q.queueSlotsRepo.UpdateSlot(ctx, slot); err != nil {
 			logger.Errorf(ctx, "failed to update slot %s: %v", slot.ID, err)
 			hadError = true
 		}
@@ -500,7 +502,7 @@ func (q *QueueUseCase) TransferFailed(ctx context.Context, headmanID, fromQueueI
 // ==================== Приватные методы ====================
 
 func (q *QueueUseCase) transferFailedStudents(ctx context.Context, fromQueueID, toQueueID uuid.UUID) (int, error) {
-	failedSlots, err := q.queueRepo.GetFailedSlotsByQueueID(ctx, fromQueueID)
+	failedSlots, err := q.queueSlotsRepo.GetFailedSlotsByQueueID(ctx, fromQueueID)
 	if err != nil {
 		return 0, err
 	}
@@ -510,7 +512,7 @@ func (q *QueueUseCase) transferFailedStudents(ctx context.Context, fromQueueID, 
 	}
 
 	// Получаем текущую последнюю позицию в новой очереди
-	lastPosition, err := q.queueRepo.GetLastPosition(ctx, toQueueID)
+	lastPosition, err := q.queueSlotsRepo.GetLastPosition(ctx, toQueueID)
 	if err != nil {
 		return 0, err
 	}
@@ -527,7 +529,7 @@ func (q *QueueUseCase) transferFailedStudents(ctx context.Context, fromQueueID, 
 		})
 	}
 
-	count, err := q.queueRepo.CreateSlots(ctx, newSlots)
+	count, err := q.queueSlotsRepo.CreateSlots(ctx, newSlots)
 	if err != nil {
 		return 0, err
 	}

@@ -22,8 +22,8 @@ type TokenRepository interface {
 }
 
 type UserRepository interface {
+	UserReader
 	CreateUser(ctx context.Context, user models.User) (uuid.UUID, error)
-	GetUserByID(ctx context.Context, uid uuid.UUID) (models.User, error)
 	UpdateUser(ctx context.Context, user models.User) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 }

@@ -22,6 +22,7 @@ type User struct {
 	LastName     string
 	Patronymic   string
 	Role         RoleType
+	IsBlocked    bool
 	GroupID      uuid.UUID
 	UniversityID uuid.UUID
 	CreatedAt    time.Time
