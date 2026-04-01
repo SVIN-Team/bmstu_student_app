@@ -11,3 +11,8 @@ repository:
   redis_connection_string: redis://localhost:6379/0
 
 test_mode: false
+
+routing:
+  gin_mode: debug
+  port: 8080
+

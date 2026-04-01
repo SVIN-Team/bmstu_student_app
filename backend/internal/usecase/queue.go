@@ -35,17 +35,13 @@ type QueueRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-type UserReader interface {
-	GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
-}
-
 type QueueUseCase struct {
 	queueRepo      QueueRepository
 	queueSlotsRepo QueueSlotsRepository
-	userRepo       UserReader
+	userRepo       UserRepository
 }
 
-func NewQueueUseCase(queueRepo QueueRepository, queueSlotsRepo QueueSlotsRepository, userRepo UserReader) *QueueUseCase {
+func NewQueueUseCase(queueRepo QueueRepository, queueSlotsRepo QueueSlotsRepository, userRepo UserRepository) *QueueUseCase {
 	return &QueueUseCase{
 		queueRepo:      queueRepo,
 		userRepo:       userRepo,
@@ -114,6 +110,25 @@ func (q *QueueUseCase) GetMyQueues(ctx context.Context, studentID uuid.UUID) ([]
 	}
 
 	return result, nil
+}
+
+// GetSlotsByQueueID возвращает все слоты в очереди
+func (q *QueueUseCase) GetSlotsByQueueID(ctx context.Context, queueID uuid.UUID) ([]models.QueueSlot, error) {
+	slots, err := q.queueSlotsRepo.GetSlotsByQueueID(ctx, queueID)
+	if err != nil {
+		logger.Errorf(ctx, "failed to get slots for queue %s: %v", queueID, err)
+		return nil, apperrors.ErrInternalServer
+	}
+	return slots, nil
+}
+
+// GetSlotByID возвращает слот по ID
+func (q *QueueUseCase) GetSlotByID(ctx context.Context, slotID uuid.UUID) (models.QueueSlot, error) {
+	slot, err := q.queueSlotsRepo.GetSlotByID(ctx, slotID)
+	if err != nil {
+		return models.QueueSlot{}, apperrors.ErrSlotNotFound
+	}
+	return slot, nil
 }
 
 // ==================== Создание/управление (для старосты) ====================

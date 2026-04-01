@@ -2,6 +2,7 @@ package gormrepository
 
 import (
 	"context"
+	"errors"
 
 	apperrors "stud_hub/internal/errors"
 	"stud_hub/internal/models"
@@ -35,7 +36,7 @@ func (r *GroupRepository) GetByID(ctx context.Context, id uuid.UUID) (models.Gro
 func (r *GroupRepository) GetByName(ctx context.Context, name string) (models.Group, error) {
 	var g gormmodels.Group
 	if err := r.db.WithContext(ctx).First(&g, "name = ?", name).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return models.Group{}, apperrors.ErrGroupNotFound
 		}
 		logger.Errorf(ctx, "gorm: failed to get group by name %s: %v", name, err)

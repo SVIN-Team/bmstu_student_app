@@ -104,3 +104,7 @@ func (g *GroupUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 	logger.Infof(ctx, "group deleted: %s", id)
 	return nil
 }
+
+func (g *GroupUseCase) GetByName(ctx context.Context, name string) (models.Group, error) {
+	return g.groupRepo.GetByName(ctx, name)
+}

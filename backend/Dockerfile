@@ -25,5 +25,7 @@ COPY deploy /app/deploy
 
 ENV PATH="/app:${PATH}"
 
+EXPOSE 8080
+
 ENTRYPOINT ["/app/studhub"]
 CMD ["--config", "/app/deploy/config.yaml"]

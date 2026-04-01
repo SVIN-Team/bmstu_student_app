@@ -53,6 +53,8 @@ services:
       REFRESH_SECRET_KEY: ${REFRESH_SECRET_KEY}
     volumes:
       - ../deploy/config.yaml:/app/deploy/config.yaml:ro
+    ports:
+      - 8080:8080
 
 volumes:
   postgres_data:
