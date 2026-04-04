@@ -12,7 +12,6 @@ import (
     "github.com/google/uuid"
     "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/require"
-    "gorm.io/gorm"
 )
 
 func TestQueueRepository_Create(t *testing.T) {
@@ -385,19 +384,4 @@ func TestQueueRepository_Delete(t *testing.T) {
 
     _, err = repo.GetByID(ctx, queueID)
     assert.Error(t, err)
-}
-
-func createTestQueueForTest(t *testing.T, db *gorm.DB, groupID, subjectID, userID uuid.UUID) *gormmodels.Queue {
-    queue := &gormmodels.Queue{
-        ID:        uuid.New(),
-        GroupID:   groupID,
-        SubjectID: subjectID,
-        CreatedBy: userID,
-        CreatedAt: time.Now(),
-        OpensAt:   time.Now().Add(24 * time.Hour),
-        Status:    gormmodels.QueueStatusDraft,
-    }
-    err := db.Create(queue).Error
-    require.NoError(t, err)
-    return queue
 }

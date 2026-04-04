@@ -432,7 +432,7 @@ func TestLessonRepository_GetLessonDetails(t *testing.T) {
 
     details, err := repo.GetLessonDetails(ctx, lessonID)
     assert.NoError(t, err)
-    assert.Equal(t, lessonID, details.Lesson.ID)
+    assert.Equal(t, lessonID, details.ID)
     assert.Equal(t, group.Name, details.GroupName)
     assert.Equal(t, subject.Name, details.SubjectName)
     assert.Equal(t, teacher.Name(), details.TeacherName)
