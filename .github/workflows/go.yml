@@ -72,6 +72,9 @@ jobs:
             sleep 2
           done
 
+      - name: Install Redis CLI
+        run: sudo apt-get update && sudo apt-get install -y redis-tools
+
       - name: Wait for Redis
         run: |
           for i in {1..30}; do
@@ -94,7 +97,7 @@ jobs:
       
       - name: Run Go integration tests
         working-directory: ./backend
-        run: go test -v ./test/integration/...
+        run: go test --tags=integration -v ./...
 
       - name: Build Go project
         working-directory: ./backend
