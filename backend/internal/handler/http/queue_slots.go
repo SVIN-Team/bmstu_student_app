@@ -138,9 +138,9 @@ func (h *QueueSlotsHandler) SignUpForQueue(ctx *gin.Context) {
 }
 
 // UpdateQueueSlot updates the status of a slot (for headman)
-// PATCH /queues/:queue_id/slots/:id
+// PATCH /queues/:queue_id/slots/:slot_id
 func (h *QueueSlotsHandler) UpdateQueueSlot(ctx *gin.Context) {
-	slotIDStr := ctx.Param("id")
+	slotIDStr := ctx.Param("slot_id")
 	slotID, err := uuid.Parse(slotIDStr)
 	if err != nil {
 		ValidationError(ctx, "Invalid slot ID format")
@@ -175,7 +175,7 @@ func (h *QueueSlotsHandler) UpdateQueueSlot(ctx *gin.Context) {
 }
 
 // CancelQueueSlot cancels a sign-up (student can only cancel their own)
-// DELETE /queues/:queue_id/slots/:id
+// DELETE /queues/:queue_id/slots/:slot_id
 func (h *QueueSlotsHandler) CancelQueueSlot(ctx *gin.Context) {
 	queueIDStr := ctx.Param("queue_id")
 	queueID, err := uuid.Parse(queueIDStr)

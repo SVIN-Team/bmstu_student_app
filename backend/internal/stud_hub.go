@@ -109,16 +109,16 @@ func Run(cfg *config.ApplicationConfig) {
 		{
 			queues.GET("", queueHandler.GetQueues)
 			queues.POST("", queueHandler.CreateQueue) // headman only
-			queues.GET("/:id", queueHandler.GetQueueByID)
-			queues.PATCH("/:id", queueHandler.UpdateQueue)  // headman only
-			queues.DELETE("/:id", queueHandler.DeleteQueue) // headman only
+			queues.GET("/:queue_id", queueHandler.GetQueueByID)
+			queues.PATCH("/:queue_id", queueHandler.UpdateQueue)  // headman only
+			queues.DELETE("/:queue_id", queueHandler.DeleteQueue) // headman only
 
 			// Queue slots
 			queues.GET("/:queue_id/slots", queueSlotsHandler.GetQueueSlots)
 			queues.POST("/:queue_id/slots", queueSlotsHandler.SignUpForQueue)
-			queues.GET("/:queue_id/slots/:id", queueSlotsHandler.GetQueueSlot)
-			queues.PATCH("/:queue_id/slots/:id", queueSlotsHandler.UpdateQueueSlot) // headman only
-			queues.DELETE("/:queue_id/slots/:id", queueSlotsHandler.CancelQueueSlot)
+			queues.GET("/:queue_id/slots/:slot_id", queueSlotsHandler.GetQueueSlot)
+			queues.PATCH("/:queue_id/slots/:slot_id", queueSlotsHandler.UpdateQueueSlot) // headman only
+			queues.DELETE("/:queue_id/slots/:slot_id", queueSlotsHandler.CancelQueueSlot)
 
 			// Slot transfers
 			queues.POST("/:queue_id/transfers", queueSlotsHandler.TransferFailedSlots) // headman only

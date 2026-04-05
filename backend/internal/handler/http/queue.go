@@ -112,9 +112,9 @@ func (h *QueueHandler) GetQueues(ctx *gin.Context) {
 }
 
 // GetQueueByID returns a single queue by ID
-// GET /queues/:id
+// GET /queues/:queue_id
 func (h *QueueHandler) GetQueueByID(ctx *gin.Context) {
-	queueIDStr := ctx.Param("id")
+	queueIDStr := ctx.Param("queue_id")
 	queueID, err := uuid.Parse(queueIDStr)
 	if err != nil {
 		ValidationError(ctx, "Invalid queue ID format")
@@ -155,9 +155,9 @@ func (h *QueueHandler) CreateQueue(ctx *gin.Context) {
 }
 
 // UpdateQueue updates an existing queue
-// PATCH /queues/:id
+// PATCH /queues/:queue_id
 func (h *QueueHandler) UpdateQueue(ctx *gin.Context) {
-	queueIDStr := ctx.Param("id")
+	queueIDStr := ctx.Param("queue_id")
 	queueID, err := uuid.Parse(queueIDStr)
 	if err != nil {
 		ValidationError(ctx, "Invalid queue ID format")
@@ -202,9 +202,9 @@ func (h *QueueHandler) UpdateQueue(ctx *gin.Context) {
 }
 
 // DeleteQueue deletes a queue
-// DELETE /queues/:id
+// DELETE /queues/:queue_id
 func (h *QueueHandler) DeleteQueue(ctx *gin.Context) {
-	queueIDStr := ctx.Param("id")
+	queueIDStr := ctx.Param("queue_id")
 	queueID, err := uuid.Parse(queueIDStr)
 	if err != nil {
 		ValidationError(ctx, "Invalid queue ID format")
