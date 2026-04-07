@@ -2,6 +2,7 @@ package gormrepository
 
 import (
 	"context"
+	"sync"
 
 	apperrors "stud_hub/internal/errors"
 	"stud_hub/internal/models"
@@ -14,10 +15,11 @@ import (
 
 type ClassroomRepository struct {
 	db *gorm.DB
+	mu sync.Mutex
 }
 
 func NewClassroomRepository(db *gorm.DB) *ClassroomRepository {
-	return &ClassroomRepository{db: db}
+	return &ClassroomRepository{db: db, mu: sync.Mutex{}}
 }
 
 func (r *ClassroomRepository) GetByID(ctx context.Context, id uuid.UUID) (models.Classroom, error) {
@@ -34,6 +36,9 @@ func (r *ClassroomRepository) GetByID(ctx context.Context, id uuid.UUID) (models
 
 func (r *ClassroomRepository) GetOrCreateByName(ctx context.Context, name string) (uuid.UUID, error) {
 	var room gormmodels.Room
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	err := r.db.WithContext(ctx).First(&room, "name = ?", name).Error
 	if err == nil {
 		return room.ID, nil
