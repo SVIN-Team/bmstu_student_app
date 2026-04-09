@@ -8,6 +8,14 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// @title Stud Hub API
+// @version 1.0
+// @description HTTP API for Stud Hub backend.
+// @BasePath /api/v1
+// @schemes http https
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	configPath := pflag.StringP("config", "c", "config.yaml", "Path to application config file")
 	pflag.Parse()

@@ -43,8 +43,17 @@ func NewAdminHandler(
 
 // ==================== User Management ====================
 
-// GetUsers returns list of all users (admin only)
-// GET /admin/users?page=1&per_page=20
+// GetUsers godoc
+// @Summary List users (admin)
+// @Description Returns paginated list of users.
+// @Tags Admin Users
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(20)
+// @Success 200 {object} dto.SuccessResponse{data=dto.UserListResponse}
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/users [get]
 func (h *AdminHandler) GetUsers(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "20"))
@@ -65,9 +74,9 @@ func (h *AdminHandler) GetUsers(ctx *gin.Context) {
 		response[i] = h.userToDTO(user, true)
 	}
 
-	SuccessResponse(ctx, http.StatusOK, gin.H{
-		"items": response,
-		"pagination": dto.PaginationResponse{
+	SuccessResponse(ctx, http.StatusOK, dto.UserListResponse{
+		Items: response,
+		Pagination: dto.PaginationResponse{
 			Page:    page,
 			PerPage: perPage,
 			Total:   total,
@@ -75,8 +84,18 @@ func (h *AdminHandler) GetUsers(ctx *gin.Context) {
 	})
 }
 
-// GetUserByID returns a specific user by ID (admin only)
-// GET /admin/users/:id
+// GetUserByID godoc
+// @Summary Get user by ID (admin)
+// @Description Returns user details by ID.
+// @Tags Admin Users
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Success 200 {object} dto.SuccessResponse{data=dto.UserResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/users/{id} [get]
 func (h *AdminHandler) GetUserByID(ctx *gin.Context) {
 	userIDStr := ctx.Param("id")
 	userID, err := uuid.Parse(userIDStr)
@@ -98,8 +117,20 @@ func (h *AdminHandler) GetUserByID(ctx *gin.Context) {
 	SuccessResponse(ctx, http.StatusOK, h.userToDTO(user, true))
 }
 
-// UpdateUser updates user information (admin only)
-// PATCH /admin/users/:id
+// UpdateUser godoc
+// @Summary Update user (admin)
+// @Description Partially updates user fields.
+// @Tags Admin Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Param request body dto.AdminUpdateUserRequest true "Admin update user request"
+// @Success 200 {object} dto.SuccessResponse{data=dto.UserResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/users/{id} [patch]
 func (h *AdminHandler) UpdateUser(ctx *gin.Context) {
 	userIDStr := ctx.Param("id")
 	userID, err := uuid.Parse(userIDStr)
@@ -108,11 +139,7 @@ func (h *AdminHandler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	var req struct {
-		Role      *string `json:"role"`
-		IsBlocked *bool   `json:"is_blocked"`
-		GroupID   *string `json:"group_id"`
-	}
+	var req dto.AdminUpdateUserRequest
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ValidationError(ctx, fmt.Sprintf("Invalid request body: %v", err))
@@ -163,40 +190,32 @@ func (h *AdminHandler) UpdateUser(ctx *gin.Context) {
 	SuccessResponse(ctx, http.StatusOK, h.userToDTO(updatedUser, true))
 }
 
-// DeleteUser deletes a user (admin only)
-// DELETE /admin/users/:id
+// DeleteUser godoc
+// @Summary Delete user (admin)
+// @Description Deletes user by ID.
+// @Tags Admin Users
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/users/{id} [delete]
 func (h *AdminHandler) DeleteUser(ctx *gin.Context) {
 	userIDStr := ctx.Param("id")
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "VALIDATION_ERROR",
-				"message": "Invalid user ID format",
-			},
-		})
+		ValidationError(ctx, "Invalid user ID format")
 		return
 	}
 
 	err = h.adminUseCase.DeleteUser(ctx, userID)
 	if errors.Is(err, errors2.ErrUserNotFound) {
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "NOT_FOUND",
-				"message": "User not found",
-			},
-		})
+		NotFoundError(ctx, "User not found")
 		return
 	} else if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "INTERNAL_ERROR",
-				"message": fmt.Sprintf("Failed to delete user: %v", err),
-			},
-		})
+		InternalError(ctx, fmt.Sprintf("Failed to delete user: %v", err))
 		logger.Errorf(ctx, "Failed to delete user: %v", err)
 		return
 	}
@@ -206,18 +225,19 @@ func (h *AdminHandler) DeleteUser(ctx *gin.Context) {
 
 // ==================== Groups Management ====================
 
-// GetGroups returns all groups
-// GET /admin/groups
+// GetGroups godoc
+// @Summary List groups (admin)
+// @Description Returns all groups.
+// @Tags Admin Groups
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.SuccessResponse{data=[]dto.GroupResponse}
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/groups [get]
 func (h *AdminHandler) GetGroups(ctx *gin.Context) {
 	groups, err := h.groupUseCase.GetAll(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "INTERNAL_ERROR",
-				"message": fmt.Sprintf("Failed to get groups: %v", err),
-			},
-		})
+		InternalError(ctx, fmt.Sprintf("Failed to get groups: %v", err))
 		logger.Errorf(ctx, "Failed to get groups: %v", err)
 		return
 	}
@@ -230,27 +250,26 @@ func (h *AdminHandler) GetGroups(ctx *gin.Context) {
 		}
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    response,
-	})
+	SuccessResponse(ctx, http.StatusOK, response)
 }
 
-// CreateGroup creates a new group
-// POST /admin/groups
+// CreateGroup godoc
+// @Summary Create group (admin)
+// @Description Creates a new group.
+// @Tags Admin Groups
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.AdminUpsertGroupRequest true "Create group request"
+// @Success 201 {object} dto.SuccessResponse{data=dto.GroupResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/groups [post]
 func (h *AdminHandler) CreateGroup(ctx *gin.Context) {
-	var req struct {
-		Name string `json:"name" binding:"required"`
-	}
+	var req dto.AdminUpsertGroupRequest
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "VALIDATION_ERROR",
-				"message": fmt.Sprintf("Invalid request body: %v", err),
-			},
-		})
+		ValidationError(ctx, fmt.Sprintf("Invalid request body: %v", err))
 		return
 	}
 
@@ -261,101 +280,79 @@ func (h *AdminHandler) CreateGroup(ctx *gin.Context) {
 
 	id, err := h.groupUseCase.Create(ctx, group)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "INTERNAL_ERROR",
-				"message": fmt.Sprintf("Failed to create group: %v", err),
-			},
-		})
+		InternalError(ctx, fmt.Sprintf("Failed to create group: %v", err))
 		logger.Errorf(ctx, "Failed to create group: %v", err)
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{
-		"success": true,
-		"data": dto.GroupResponse{
-			ID:   id.String(),
-			Name: req.Name,
-		},
+	SuccessResponse(ctx, http.StatusCreated, dto.GroupResponse{
+		ID:   id.String(),
+		Name: req.Name,
 	})
 }
 
-// GetGroupByID returns a specific group
-// GET /admin/groups/:id
+// GetGroupByID godoc
+// @Summary Get group by ID (admin)
+// @Description Returns group details by ID.
+// @Tags Admin Groups
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Group ID"
+// @Success 200 {object} dto.SuccessResponse{data=dto.GroupResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/groups/{id} [get]
 func (h *AdminHandler) GetGroupByID(ctx *gin.Context) {
 	groupIDStr := ctx.Param("id")
 	groupID, err := uuid.Parse(groupIDStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "VALIDATION_ERROR",
-				"message": "Invalid group ID format",
-			},
-		})
+		ValidationError(ctx, "Invalid group ID format")
 		return
 	}
 
 	group, err := h.groupUseCase.GetByID(ctx, groupID)
 	if errors.Is(err, errors2.ErrGroupNotFound) {
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "NOT_FOUND",
-				"message": "Group not found",
-			},
-		})
+		NotFoundError(ctx, "Group not found")
 		return
 	} else if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "INTERNAL_ERROR",
-				"message": fmt.Sprintf("Failed to get group: %v", err),
-			},
-		})
+		InternalError(ctx, fmt.Sprintf("Failed to get group: %v", err))
 		logger.Errorf(ctx, "Failed to get group: %v", err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": dto.GroupResponse{
-			ID:   group.ID.String(),
-			Name: group.Name,
-		},
+	SuccessResponse(ctx, http.StatusOK, dto.GroupResponse{
+		ID:   group.ID.String(),
+		Name: group.Name,
 	})
 }
 
-// UpdateGroup updates a group
-// PATCH /admin/groups/:id
+// UpdateGroup godoc
+// @Summary Update group (admin)
+// @Description Updates group name.
+// @Tags Admin Groups
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Group ID"
+// @Param request body dto.AdminUpsertGroupRequest true "Update group request"
+// @Success 200 {object} dto.SuccessResponse{data=dto.GroupResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/groups/{id} [patch]
 func (h *AdminHandler) UpdateGroup(ctx *gin.Context) {
 	groupIDStr := ctx.Param("id")
 	groupID, err := uuid.Parse(groupIDStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "VALIDATION_ERROR",
-				"message": "Invalid group ID format",
-			},
-		})
+		ValidationError(ctx, "Invalid group ID format")
 		return
 	}
 
-	var req struct {
-		Name string `json:"name" binding:"required"`
-	}
+	var req dto.AdminUpsertGroupRequest
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "VALIDATION_ERROR",
-				"message": fmt.Sprintf("Invalid request body: %v", err),
-			},
-		})
+		ValidationError(ctx, fmt.Sprintf("Invalid request body: %v", err))
 		return
 	}
 
@@ -366,37 +363,32 @@ func (h *AdminHandler) UpdateGroup(ctx *gin.Context) {
 
 	err = h.groupUseCase.Update(ctx, group)
 	if errors.Is(err, errors2.ErrGroupNotFound) {
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "NOT_FOUND",
-				"message": "Group not found",
-			},
-		})
+		NotFoundError(ctx, "Group not found")
 		return
 	} else if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "INTERNAL_ERROR",
-				"message": fmt.Sprintf("Failed to update group: %v", err),
-			},
-		})
+		InternalError(ctx, fmt.Sprintf("Failed to update group: %v", err))
 		logger.Errorf(ctx, "Failed to update group: %v", err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": dto.GroupResponse{
-			ID:   group.ID.String(),
-			Name: group.Name,
-		},
+	SuccessResponse(ctx, http.StatusOK, dto.GroupResponse{
+		ID:   group.ID.String(),
+		Name: group.Name,
 	})
 }
 
-// DeleteGroup deletes a group
-// DELETE /admin/groups/:id
+// DeleteGroup godoc
+// @Summary Delete group (admin)
+// @Description Deletes group by ID.
+// @Tags Admin Groups
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Group ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/groups/{id} [delete]
 func (h *AdminHandler) DeleteGroup(ctx *gin.Context) {
 	groupIDStr := ctx.Param("id")
 	groupID, err := uuid.Parse(groupIDStr)

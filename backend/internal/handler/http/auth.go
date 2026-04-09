@@ -49,6 +49,18 @@ func NewAuthHandler(authUseCase AuthUseCase, groupUseCase GroupUseCase, cfg *con
 	}
 }
 
+// SignUp godoc
+// @Summary Register a new user
+// @Description Creates a new user in an existing group and returns created user payload.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.SignUpRequest true "Signup request"
+// @Success 200 {object} dto.SuccessResponse{data=dto.AuthSignUpResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /auth/register [post]
 func (h *AuthHandler) SignUp(ctx *gin.Context) {
 	var json dto.SignUpRequest
 	err := ctx.ShouldBindBodyWithJSON(&json)
@@ -81,14 +93,27 @@ func (h *AuthHandler) SignUp(ctx *gin.Context) {
 	ctx.SetCookie("refresh_token", refresh, int(h.authConf.RefreshLifeTime.Seconds()),
 		"/api/v1/tokens/refresh", "", true, true)
 
-	SuccessResponse(ctx, http.StatusOK, gin.H{
-		"id":         userId.String(),
-		"email":      json.Email,
-		"first_name": json.FirstName,
-		"last_name":  json.LastName,
+	SuccessResponse(ctx, http.StatusOK, dto.AuthSignUpResponse{
+		ID:        userId.String(),
+		Email:     json.Email,
+		FirstName: json.FirstName,
+		LastName:  json.LastName,
 	})
 }
 
+// SignIn godoc
+// @Summary Sign in
+// @Description Authenticates user credentials and sets auth cookies.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.LoginRequest true "Signin request"
+// @Success 200 {object} dto.SuccessResponse{data=dto.AuthSignInResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /auth/login [post]
 func (h *AuthHandler) SignIn(ctx *gin.Context) {
 	var json dto.LoginRequest
 	err := ctx.ShouldBindBodyWithJSON(&json)
@@ -117,11 +142,20 @@ func (h *AuthHandler) SignIn(ctx *gin.Context) {
 		"/", "", true, true)
 	ctx.SetCookie("refresh_token", refresh, int(h.authConf.RefreshLifeTime.Seconds()),
 		"/api/v1/tokens/refresh", "", true, true)
-	SuccessResponse(ctx, http.StatusOK, gin.H{
-		"id": userId.String(),
+	SuccessResponse(ctx, http.StatusOK, dto.AuthSignInResponse{
+		ID: userId.String(),
 	})
 }
 
+// Refresh godoc
+// @Summary Refresh access token
+// @Description Refreshes access and refresh tokens using refresh cookie.
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} dto.SuccessResponse{data=dto.AuthRefreshResponse}
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /auth/refresh [post]
 func (h *AuthHandler) Refresh(ctx *gin.Context) {
 	refreshToken, err := ctx.Cookie("refresh_token")
 	if err != nil {
@@ -144,12 +178,22 @@ func (h *AuthHandler) Refresh(ctx *gin.Context) {
 	ctx.SetCookie("refresh_token", newRefresh, int(h.authConf.RefreshLifeTime.Seconds()),
 		"/api/v1/tokens/refresh", "", true, true)
 
-	SuccessResponse(ctx, http.StatusOK, gin.H{
-		"access_token": access,
-		"expires_in":   int(h.authConf.AccessLifeTime.Seconds()),
+	SuccessResponse(ctx, http.StatusOK, dto.AuthRefreshResponse{
+		AccessToken: access,
+		ExpiresIn:   int(h.authConf.AccessLifeTime.Seconds()),
 	})
 }
 
+// SignOut godoc
+// @Summary Sign out from current device
+// @Description Revokes current refresh token and clears auth cookies.
+// @Tags Auth
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.SuccessResponse{data=dto.MessageResponse}
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /auth/logout [post]
 func (h *AuthHandler) SignOut(ctx *gin.Context) {
 	refreshToken, err := ctx.Cookie("refresh_token")
 	if err != nil {
@@ -167,11 +211,21 @@ func (h *AuthHandler) SignOut(ctx *gin.Context) {
 	ctx.SetCookie("access_token", "", -1, "/", "", true, true)
 	ctx.SetCookie("refresh_token", "", -1, "/api/v1/tokens/refresh", "", true, true)
 
-	SuccessResponse(ctx, http.StatusOK, gin.H{
-		"message": "Successfully signed out",
+	SuccessResponse(ctx, http.StatusOK, dto.MessageResponse{
+		Message: "Successfully signed out",
 	})
 }
 
+// SignOutAll godoc
+// @Summary Sign out from all devices
+// @Description Revokes all refresh tokens for the authenticated user and clears auth cookies.
+// @Tags Auth
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.SuccessResponse{data=dto.MessageResponse}
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /auth/logout-all [post]
 func (h *AuthHandler) SignOutAll(ctx *gin.Context) {
 	// Get user ID from context (set by auth middleware)
 	userIDValue, exists := ctx.Get("user_id")
@@ -196,7 +250,7 @@ func (h *AuthHandler) SignOutAll(ctx *gin.Context) {
 	ctx.SetCookie("access_token", "", -1, "/", "", true, true)
 	ctx.SetCookie("refresh_token", "", -1, "/api/v1/tokens/refresh", "", true, true)
 
-	SuccessResponse(ctx, http.StatusOK, gin.H{
-		"message": "Successfully signed out from all devices",
+	SuccessResponse(ctx, http.StatusOK, dto.MessageResponse{
+		Message: "Successfully signed out from all devices",
 	})
 }

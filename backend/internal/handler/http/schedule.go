@@ -36,8 +36,20 @@ func NewScheduleHandler(scheduleUseCase ScheduleUseCase) *ScheduleHandler {
 	}
 }
 
-// GetLessons returns lessons filtered by group and date range
-// GET /lessons?group_id=xxx&date_from=2026-02-23&date_to=2026-02-28
+// GetLessons godoc
+// @Summary List lessons
+// @Description Returns lessons by group and date range.
+// @Tags Lessons
+// @Produce json
+// @Security BearerAuth
+// @Param group_id query string false "Group ID (UUID). If omitted, current user's group is used."
+// @Param date_from query string true "Start date in YYYY-MM-DD format"
+// @Param date_to query string true "End date in YYYY-MM-DD format"
+// @Success 200 {object} dto.SuccessResponse{data=[]dto.LessonResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /lessons [get]
 func (h *ScheduleHandler) GetLessons(ctx *gin.Context) {
 	groupIDStr := ctx.Query("group_id")
 	dateFromStr := ctx.Query("date_from")
@@ -96,52 +108,51 @@ func (h *ScheduleHandler) GetLessons(ctx *gin.Context) {
 	SuccessResponse(ctx, http.StatusOK, response)
 }
 
-// GetLessonByID returns a single lesson by ID
-// GET /lessons/:id
+// GetLessonByID godoc
+// @Summary Get lesson by ID
+// @Description Returns lesson details by lesson ID.
+// @Tags Lessons
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Lesson ID"
+// @Success 200 {object} dto.SuccessResponse{data=dto.LessonResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /lessons/{id} [get]
 func (h *ScheduleHandler) GetLessonByID(ctx *gin.Context) {
 	lessonIDStr := ctx.Param("id")
 	lessonID, err := uuid.Parse(lessonIDStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "VALIDATION_ERROR",
-				"message": "Invalid lesson ID format",
-			},
-		})
+		ValidationError(ctx, "Invalid lesson ID format")
 		return
 	}
 
 	lesson, err := h.scheduleUseCase.GetLessonByID(ctx, lessonID)
 	if errors.Is(err, errors2.ErrLessonNotFound) {
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "NOT_FOUND",
-				"message": "Lesson not found",
-			},
-		})
+		NotFoundError(ctx, "Lesson not found")
 		return
 	} else if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "INTERNAL_ERROR",
-				"message": fmt.Sprintf("Failed to get lesson: %v", err),
-			},
-		})
+		InternalError(ctx, fmt.Sprintf("Failed to get lesson: %v", err))
 		logger.Errorf(ctx, "Failed to get lesson: %v", err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    h.lessonToDTO(lesson),
-	})
+	SuccessResponse(ctx, http.StatusOK, h.lessonToDTO(lesson))
 }
 
-// ImportSchedule imports schedule from JSON file
-// POST /lessons/imports
+// ImportSchedule godoc
+// @Summary Import schedule
+// @Description Imports lessons from uploaded JSON file (admin endpoint when enabled in routing).
+// @Tags Lessons
+// @Accept mpfd
+// @Produce json
+// @Security BearerAuth
+// @Param file formData file true "JSON file with import payload"
+// @Success 200 {object} dto.SuccessResponse{data=dto.ImportScheduleResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /lessons/imports [post]
 func (h *ScheduleHandler) ImportSchedule(ctx *gin.Context) {
 	file, header, err := ctx.Request.FormFile("file")
 	if err != nil {

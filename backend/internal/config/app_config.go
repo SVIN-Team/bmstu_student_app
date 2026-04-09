@@ -14,6 +14,7 @@ type ApplicationConfig struct {
 	RepositoryConfig RepositoryConfig `yaml:"repository"`
 	RoutingConfig    RoutingConfig    `yaml:"routing"`
 	TestMode         bool             `yaml:"test_mode"`
+	EnableSwagger    bool             `yaml:"enable_swagger"`
 }
 
 func LoadApplicationConfig(path string) (*ApplicationConfig, error) {

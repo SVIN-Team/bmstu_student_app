@@ -34,8 +34,16 @@ func NewUserHandler(userUseCase UserUseCase, groupUseCase GroupUseCase) *UserHan
 	}
 }
 
-// GetCurrentUser returns the current user's profile
-// GET /users/me
+// GetCurrentUser godoc
+// @Summary Get current user
+// @Description Returns profile for authenticated user.
+// @Tags Users
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.SuccessResponse{data=dto.UserResponse}
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /users/me [get]
 func (h *UserHandler) GetCurrentUser(ctx *gin.Context) {
 	userID := ctx.MustGet("user_id").(uuid.UUID)
 
@@ -53,8 +61,19 @@ func (h *UserHandler) GetCurrentUser(ctx *gin.Context) {
 	SuccessResponse(ctx, http.StatusOK, response)
 }
 
-// UpdateCurrentUser updates the current user's profile
-// PATCH /users/me
+// UpdateCurrentUser godoc
+// @Summary Update current user
+// @Description Updates profile fields for authenticated user.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.UpdateUserRequest true "Update user request"
+// @Success 200 {object} dto.SuccessResponse{data=dto.UserResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /users/me [patch]
 func (h *UserHandler) UpdateCurrentUser(ctx *gin.Context) {
 	userID := ctx.MustGet("user_id").(uuid.UUID)
 
@@ -98,8 +117,17 @@ func (h *UserHandler) UpdateCurrentUser(ctx *gin.Context) {
 	SuccessResponse(ctx, http.StatusOK, h.userToDTO(updatedUser, true))
 }
 
-// GetCurrentUserSlots returns the current user's queue slots
-// GET /users/me/slots?status=waiting&queue_status=open
+// GetCurrentUserSlots godoc
+// @Summary Get current user slots
+// @Description Returns authenticated user's slots with optional filters.
+// @Tags Users
+// @Produce json
+// @Security BearerAuth
+// @Param status query string false "Slot status filter"
+// @Param queue_status query string false "Queue status filter"
+// @Success 200 {object} dto.SuccessResponse{data=[]dto.SlotResponse}
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /users/me/slots [get]
 func (h *UserHandler) GetCurrentUserSlots(ctx *gin.Context) {
 	userID := ctx.MustGet("user_id").(uuid.UUID)
 
@@ -129,8 +157,20 @@ func (h *UserHandler) GetCurrentUserSlots(ctx *gin.Context) {
 	SuccessResponse(ctx, http.StatusOK, response)
 }
 
-// TransferHeadmanRole transfers headman role to another user
-// PUT /users/me/headman-role
+// TransferHeadmanRole godoc
+// @Summary Transfer headman role
+// @Description Transfers headman role to another user in the same group.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.TransferHeadmanRoleRequest true "Transfer headman role request"
+// @Success 200 {object} dto.SuccessResponse{data=dto.TransferHeadmanRoleResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /users/me/headman-role [put]
 func (h *UserHandler) TransferHeadmanRole(ctx *gin.Context) {
 	userID := ctx.MustGet("user_id").(uuid.UUID)
 

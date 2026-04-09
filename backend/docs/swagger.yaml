@@ -1,0 +1,1577 @@
+basePath: /api/v1
+definitions:
+  dto.AdminUpdateUserRequest:
+    properties:
+      group_id:
+        type: string
+      is_blocked:
+        type: boolean
+      role:
+        type: string
+    type: object
+  dto.AdminUpsertGroupRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  dto.AuthRefreshResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+    type: object
+  dto.AuthSignInResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  dto.AuthSignUpResponse:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+    type: object
+  dto.CreateQueueRequest:
+    properties:
+      closes_at:
+        type: string
+      lesson_id:
+        type: string
+      max_size:
+        type: integer
+      opens_at:
+        type: string
+      subject_id:
+        type: string
+    required:
+    - opens_at
+    - subject_id
+    type: object
+  dto.ErrorDetail:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  dto.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/dto.ErrorDetail'
+      success:
+        type: boolean
+    type: object
+  dto.GroupResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  dto.ImportScheduleResponse:
+    properties:
+      created_subjects:
+        items:
+          type: string
+        type: array
+      created_teachers:
+        items:
+          type: string
+        type: array
+      errors:
+        items:
+          type: string
+        type: array
+      imported_count:
+        type: integer
+    type: object
+  dto.LessonResponse:
+    properties:
+      ends_at:
+        type: string
+      id:
+        type: string
+      queue_id:
+        type: string
+      room:
+        $ref: '#/definitions/dto.RoomResponse'
+      starts_at:
+        type: string
+      subject:
+        $ref: '#/definitions/dto.SubjectResponse'
+      teacher:
+        $ref: '#/definitions/dto.TeacherResponse'
+      type:
+        type: string
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  dto.PaginationResponse:
+    properties:
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+    type: object
+  dto.QueueListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.QueueResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/dto.PaginationResponse'
+    type: object
+  dto.QueueMinimalInfo:
+    properties:
+      id:
+        type: string
+      status:
+        type: string
+      subject:
+        $ref: '#/definitions/dto.SubjectResponse'
+    type: object
+  dto.QueueResponse:
+    properties:
+      closes_at:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        $ref: '#/definitions/dto.UserMinimalResponse'
+      group:
+        $ref: '#/definitions/dto.GroupResponse'
+      id:
+        type: string
+      lesson_id:
+        type: string
+      max_size:
+        type: integer
+      opens_at:
+        type: string
+      slots_count:
+        type: integer
+      status:
+        type: string
+      subject:
+        $ref: '#/definitions/dto.SubjectResponse'
+    type: object
+  dto.RoomResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  dto.SignUpRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      group_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - first_name
+    - group_name
+    - last_name
+    - password
+    type: object
+  dto.SlotResponse:
+    properties:
+      id:
+        type: string
+      position:
+        type: integer
+      queue:
+        $ref: '#/definitions/dto.QueueMinimalInfo'
+      queue_id:
+        type: string
+      signed_up_at:
+        type: string
+      status:
+        type: string
+      student:
+        $ref: '#/definitions/dto.UserMinimalResponse'
+    type: object
+  dto.SubjectResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  dto.SuccessResponse:
+    properties:
+      data: {}
+      success:
+        type: boolean
+    type: object
+  dto.TeacherResponse:
+    properties:
+      full_name:
+        type: string
+      id:
+        type: string
+    type: object
+  dto.TransferHeadmanRoleRequest:
+    properties:
+      to_user_id:
+        type: string
+    required:
+    - to_user_id
+    type: object
+  dto.TransferHeadmanRoleResponse:
+    properties:
+      group_id:
+        type: string
+      new_headman_id:
+        type: string
+      previous_headman_id:
+        type: string
+    type: object
+  dto.TransferSlotsRequest:
+    properties:
+      source_queue_id:
+        type: string
+    required:
+    - source_queue_id
+    type: object
+  dto.TransferSlotsResponse:
+    properties:
+      slots:
+        items:
+          $ref: '#/definitions/dto.SlotResponse'
+        type: array
+      transferred_count:
+        type: integer
+    type: object
+  dto.UpdateQueueRequest:
+    properties:
+      closes_at:
+        type: string
+      max_size:
+        type: integer
+      status:
+        type: string
+    type: object
+  dto.UpdateSlotRequest:
+    properties:
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  dto.UpdateUserRequest:
+    properties:
+      first_name:
+        type: string
+      group_id:
+        type: string
+      last_name:
+        type: string
+    type: object
+  dto.UserListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.UserResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/dto.PaginationResponse'
+    type: object
+  dto.UserMinimalResponse:
+    properties:
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+    type: object
+  dto.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      group:
+        $ref: '#/definitions/dto.GroupResponse'
+      id:
+        type: string
+      is_blocked:
+        type: boolean
+      last_name:
+        type: string
+      role:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: HTTP API for Stud Hub backend.
+  title: Stud Hub API
+  version: "1.0"
+paths:
+  /admin/groups:
+    get:
+      description: Returns all groups.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.GroupResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List groups (admin)
+      tags:
+      - Admin Groups
+    post:
+      consumes:
+      - application/json
+      description: Creates a new group.
+      parameters:
+      - description: Create group request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminUpsertGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.GroupResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create group (admin)
+      tags:
+      - Admin Groups
+  /admin/groups/{id}:
+    delete:
+      description: Deletes group by ID.
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete group (admin)
+      tags:
+      - Admin Groups
+    get:
+      description: Returns group details by ID.
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.GroupResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get group by ID (admin)
+      tags:
+      - Admin Groups
+    patch:
+      consumes:
+      - application/json
+      description: Updates group name.
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update group request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminUpsertGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.GroupResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update group (admin)
+      tags:
+      - Admin Groups
+  /admin/users:
+    get:
+      description: Returns paginated list of users.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserListResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List users (admin)
+      tags:
+      - Admin Users
+  /admin/users/{id}:
+    delete:
+      description: Deletes user by ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete user (admin)
+      tags:
+      - Admin Users
+    get:
+      description: Returns user details by ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user by ID (admin)
+      tags:
+      - Admin Users
+    patch:
+      consumes:
+      - application/json
+      description: Partially updates user fields.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Admin update user request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminUpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user (admin)
+      tags:
+      - Admin Users
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates user credentials and sets auth cookies.
+      parameters:
+      - description: Signin request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AuthSignInResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Sign in
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      description: Revokes current refresh token and clears auth cookies.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.MessageResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Sign out from current device
+      tags:
+      - Auth
+  /auth/logout-all:
+    post:
+      description: Revokes all refresh tokens for the authenticated user and clears
+        auth cookies.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.MessageResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Sign out from all devices
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      description: Refreshes access and refresh tokens using refresh cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AuthRefreshResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Refresh access token
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user in an existing group and returns created user
+        payload.
+      parameters:
+      - description: Signup request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AuthSignUpResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - Auth
+  /lessons:
+    get:
+      description: Returns lessons by group and date range.
+      parameters:
+      - description: Group ID (UUID). If omitted, current user's group is used.
+        in: query
+        name: group_id
+        type: string
+      - description: Start date in YYYY-MM-DD format
+        in: query
+        name: date_from
+        required: true
+        type: string
+      - description: End date in YYYY-MM-DD format
+        in: query
+        name: date_to
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.LessonResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List lessons
+      tags:
+      - Lessons
+  /lessons/{id}:
+    get:
+      description: Returns lesson details by lesson ID.
+      parameters:
+      - description: Lesson ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.LessonResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get lesson by ID
+      tags:
+      - Lessons
+  /lessons/imports:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Imports lessons from uploaded JSON file (admin endpoint when enabled
+        in routing).
+      parameters:
+      - description: JSON file with import payload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ImportScheduleResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Import schedule
+      tags:
+      - Lessons
+  /queues:
+    get:
+      description: Returns queues filtered by group and status with pagination.
+      parameters:
+      - description: Group ID (UUID). If omitted, current user's group is used.
+        in: query
+        name: group_id
+        type: string
+      - description: Queue status filter
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QueueListResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List queues
+      tags:
+      - Queues
+    post:
+      consumes:
+      - application/json
+      description: Creates a queue for the authenticated user's group.
+      parameters:
+      - description: Create queue request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateQueueRequest'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create queue
+      tags:
+      - Queues
+  /queues/{queue_id}:
+    delete:
+      description: Deletes a queue by ID.
+      parameters:
+      - description: Queue ID
+        in: path
+        name: queue_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete queue
+      tags:
+      - Queues
+    get:
+      description: Returns detailed queue information by queue ID.
+      parameters:
+      - description: Queue ID
+        in: path
+        name: queue_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QueueResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get queue by ID
+      tags:
+      - Queues
+    patch:
+      consumes:
+      - application/json
+      description: Updates queue status and limits.
+      parameters:
+      - description: Queue ID
+        in: path
+        name: queue_id
+        required: true
+        type: string
+      - description: Update queue request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateQueueRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QueueResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update queue
+      tags:
+      - Queues
+  /queues/{queue_id}/slots:
+    get:
+      description: Returns all slots in a queue.
+      parameters:
+      - description: Queue ID
+        in: path
+        name: queue_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.SlotResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List queue slots
+      tags:
+      - Queue Slots
+    post:
+      description: Signs up authenticated user for queue and returns created slot
+        data.
+      parameters:
+      - description: Queue ID
+        in: path
+        name: queue_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SlotResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Sign up for queue
+      tags:
+      - Queue Slots
+  /queues/{queue_id}/slots/{slot_id}:
+    delete:
+      description: Cancels authenticated user's queue sign-up.
+      parameters:
+      - description: Queue ID
+        in: path
+        name: queue_id
+        required: true
+        type: string
+      - description: Slot ID
+        in: path
+        name: slot_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel queue slot
+      tags:
+      - Queue Slots
+    get:
+      description: Returns slot details by slot ID.
+      parameters:
+      - description: Queue ID
+        in: path
+        name: queue_id
+        required: true
+        type: string
+      - description: Slot ID
+        in: path
+        name: slot_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SlotResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get queue slot by ID
+      tags:
+      - Queue Slots
+    patch:
+      consumes:
+      - application/json
+      description: Updates queue slot status.
+      parameters:
+      - description: Queue ID
+        in: path
+        name: queue_id
+        required: true
+        type: string
+      - description: Slot ID
+        in: path
+        name: slot_id
+        required: true
+        type: string
+      - description: Update slot request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateSlotRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SlotResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update queue slot
+      tags:
+      - Queue Slots
+  /queues/{queue_id}/transfers:
+    post:
+      consumes:
+      - application/json
+      description: Transfers failed students from source queue to target queue.
+      parameters:
+      - description: Target queue ID
+        in: path
+        name: queue_id
+        required: true
+        type: string
+      - description: Transfer slots request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TransferSlotsRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TransferSlotsResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Transfer failed slots
+      tags:
+      - Queue Slots
+  /users/me:
+    get:
+      description: Returns profile for authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user
+      tags:
+      - Users
+    patch:
+      consumes:
+      - application/json
+      description: Updates profile fields for authenticated user.
+      parameters:
+      - description: Update user request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update current user
+      tags:
+      - Users
+  /users/me/headman-role:
+    put:
+      consumes:
+      - application/json
+      description: Transfers headman role to another user in the same group.
+      parameters:
+      - description: Transfer headman role request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TransferHeadmanRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TransferHeadmanRoleResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Transfer headman role
+      tags:
+      - Users
+  /users/me/slots:
+    get:
+      description: Returns authenticated user's slots with optional filters.
+      parameters:
+      - description: Slot status filter
+        in: query
+        name: status
+        type: string
+      - description: Queue status filter
+        in: query
+        name: queue_status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.SlotResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user slots
+      tags:
+      - Users
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

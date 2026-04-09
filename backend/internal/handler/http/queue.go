@@ -35,8 +35,20 @@ func NewQueueHandler(queueUseCase QueueUseCase, groupUseCase GroupUseCase) *Queu
 	}
 }
 
-// GetQueues returns list of queues with optional filters
-// GET /queues?group_id=xxx&status=open
+// GetQueues godoc
+// @Summary List queues
+// @Description Returns queues filtered by group and status with pagination.
+// @Tags Queues
+// @Produce json
+// @Security BearerAuth
+// @Param group_id query string false "Group ID (UUID). If omitted, current user's group is used."
+// @Param status query string false "Queue status filter"
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(20)
+// @Success 200 {object} dto.SuccessResponse{data=dto.QueueListResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /queues [get]
 func (h *QueueHandler) GetQueues(ctx *gin.Context) {
 	groupIDStr := ctx.Query("group_id")
 	status := ctx.Query("status")
@@ -101,9 +113,9 @@ func (h *QueueHandler) GetQueues(ctx *gin.Context) {
 		response[i] = h.queueToDTO(queue, false)
 	}
 
-	SuccessResponse(ctx, http.StatusOK, gin.H{
-		"items": response,
-		"pagination": dto.PaginationResponse{
+	SuccessResponse(ctx, http.StatusOK, dto.QueueListResponse{
+		Items: response,
+		Pagination: dto.PaginationResponse{
 			Page:    page,
 			PerPage: perPage,
 			Total:   total,
@@ -111,8 +123,18 @@ func (h *QueueHandler) GetQueues(ctx *gin.Context) {
 	})
 }
 
-// GetQueueByID returns a single queue by ID
-// GET /queues/:queue_id
+// GetQueueByID godoc
+// @Summary Get queue by ID
+// @Description Returns detailed queue information by queue ID.
+// @Tags Queues
+// @Produce json
+// @Security BearerAuth
+// @Param queue_id path string true "Queue ID"
+// @Success 200 {object} dto.SuccessResponse{data=dto.QueueResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /queues/{queue_id} [get]
 func (h *QueueHandler) GetQueueByID(ctx *gin.Context) {
 	queueIDStr := ctx.Param("queue_id")
 	queueID, err := uuid.Parse(queueIDStr)
@@ -134,8 +156,17 @@ func (h *QueueHandler) GetQueueByID(ctx *gin.Context) {
 	SuccessResponse(ctx, http.StatusOK, h.queueToDTO(queue, true))
 }
 
-// CreateQueue creates a new queue
-// POST /queues
+// CreateQueue godoc
+// @Summary Create queue
+// @Description Creates a queue for the authenticated user's group.
+// @Tags Queues
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.CreateQueueRequest true "Create queue request"
+// @Success 501 {object} dto.ErrorResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Router /queues [post]
 func (h *QueueHandler) CreateQueue(ctx *gin.Context) {
 	var req dto.CreateQueueRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -154,8 +185,21 @@ func (h *QueueHandler) CreateQueue(ctx *gin.Context) {
 	logger.Infof(ctx, "User %v attempting to create queue for group %v", userID, userGroupID)
 }
 
-// UpdateQueue updates an existing queue
-// PATCH /queues/:queue_id
+// UpdateQueue godoc
+// @Summary Update queue
+// @Description Updates queue status and limits.
+// @Tags Queues
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param queue_id path string true "Queue ID"
+// @Param request body dto.UpdateQueueRequest true "Update queue request"
+// @Success 200 {object} dto.SuccessResponse{data=dto.QueueResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /queues/{queue_id} [patch]
 func (h *QueueHandler) UpdateQueue(ctx *gin.Context) {
 	queueIDStr := ctx.Param("queue_id")
 	queueID, err := uuid.Parse(queueIDStr)
@@ -201,8 +245,19 @@ func (h *QueueHandler) UpdateQueue(ctx *gin.Context) {
 	SuccessResponse(ctx, http.StatusOK, h.queueToDTO(queue, true))
 }
 
-// DeleteQueue deletes a queue
-// DELETE /queues/:queue_id
+// DeleteQueue godoc
+// @Summary Delete queue
+// @Description Deletes a queue by ID.
+// @Tags Queues
+// @Produce json
+// @Security BearerAuth
+// @Param queue_id path string true "Queue ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /queues/{queue_id} [delete]
 func (h *QueueHandler) DeleteQueue(ctx *gin.Context) {
 	queueIDStr := ctx.Param("queue_id")
 	queueID, err := uuid.Parse(queueIDStr)

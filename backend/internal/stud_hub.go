@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	_ "stud_hub/docs"
 	"stud_hub/internal/config"
 	http2 "stud_hub/internal/handler/http"
 	"stud_hub/internal/handler/middleware"
@@ -17,6 +18,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Run(cfg *config.ApplicationConfig) {
@@ -77,6 +80,10 @@ func Run(cfg *config.ApplicationConfig) {
 			"message": "application is healthy",
 		})
 	})
+
+	if cfg.EnableSwagger {
+		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
 
 	// Authentication routes (public)
 	auth := r.Group("/api/v1/auth")

@@ -36,8 +36,18 @@ func NewQueueSlotsHandler(queueSlotsUseCase QueueSlotsUseCase, queueUseCase Queu
 	}
 }
 
-// GetQueueSlots returns all slots in a queue
-// GET /queues/:queue_id/slots
+// GetQueueSlots godoc
+// @Summary List queue slots
+// @Description Returns all slots in a queue.
+// @Tags Queue Slots
+// @Produce json
+// @Security BearerAuth
+// @Param queue_id path string true "Queue ID"
+// @Success 200 {object} dto.SuccessResponse{data=[]dto.SlotResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /queues/{queue_id}/slots [get]
 func (h *QueueSlotsHandler) GetQueueSlots(ctx *gin.Context) {
 	queueIDStr := ctx.Param("queue_id")
 	queueID, err := uuid.Parse(queueIDStr)
@@ -68,10 +78,21 @@ func (h *QueueSlotsHandler) GetQueueSlots(ctx *gin.Context) {
 	SuccessResponse(ctx, http.StatusOK, response)
 }
 
-// GetQueueSlot returns a single slot by ID
-// GET /queues/:queue_id/slots/:id
+// GetQueueSlot godoc
+// @Summary Get queue slot by ID
+// @Description Returns slot details by slot ID.
+// @Tags Queue Slots
+// @Produce json
+// @Security BearerAuth
+// @Param queue_id path string true "Queue ID"
+// @Param slot_id path string true "Slot ID"
+// @Success 200 {object} dto.SuccessResponse{data=dto.SlotResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /queues/{queue_id}/slots/{slot_id} [get]
 func (h *QueueSlotsHandler) GetQueueSlot(ctx *gin.Context) {
-	slotIDStr := ctx.Param("id")
+	slotIDStr := ctx.Param("slot_id")
 	slotID, err := uuid.Parse(slotIDStr)
 	if err != nil {
 		ValidationError(ctx, "Invalid slot ID format")
@@ -91,8 +112,19 @@ func (h *QueueSlotsHandler) GetQueueSlot(ctx *gin.Context) {
 	SuccessResponse(ctx, http.StatusOK, h.slotToDTO(slot, true))
 }
 
-// SignUpForQueue signs up the current user for a queue
-// POST /queues/:queue_id/slots
+// SignUpForQueue godoc
+// @Summary Sign up for queue
+// @Description Signs up authenticated user for queue and returns created slot data.
+// @Tags Queue Slots
+// @Produce json
+// @Security BearerAuth
+// @Param queue_id path string true "Queue ID"
+// @Success 201 {object} dto.SuccessResponse{data=dto.SlotResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 409 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /queues/{queue_id}/slots [post]
 func (h *QueueSlotsHandler) SignUpForQueue(ctx *gin.Context) {
 	queueIDStr := ctx.Param("queue_id")
 	queueID, err := uuid.Parse(queueIDStr)
@@ -126,10 +158,10 @@ func (h *QueueSlotsHandler) SignUpForQueue(ctx *gin.Context) {
 	slot, err := h.queueSlotsUseCase.GetSlotByID(ctx, userID)
 	if err != nil {
 		// If we can't get the slot, return minimal info
-		SuccessResponse(ctx, http.StatusCreated, gin.H{
-			"queue_id": queueID.String(),
-			"position": position,
-			"status":   string(models.SlotStatusWaiting),
+		SuccessResponse(ctx, http.StatusCreated, dto.QueueSignUpResponse{
+			QueueID:  queueID.String(),
+			Position: position,
+			Status:   string(models.SlotStatusWaiting),
 		})
 		return
 	}
@@ -137,8 +169,22 @@ func (h *QueueSlotsHandler) SignUpForQueue(ctx *gin.Context) {
 	SuccessResponse(ctx, http.StatusCreated, h.slotToDTO(slot, true))
 }
 
-// UpdateQueueSlot updates the status of a slot (for headman)
-// PATCH /queues/:queue_id/slots/:slot_id
+// UpdateQueueSlot godoc
+// @Summary Update queue slot
+// @Description Updates queue slot status.
+// @Tags Queue Slots
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param queue_id path string true "Queue ID"
+// @Param slot_id path string true "Slot ID"
+// @Param request body dto.UpdateSlotRequest true "Update slot request"
+// @Success 200 {object} dto.SuccessResponse{data=dto.SlotResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /queues/{queue_id}/slots/{slot_id} [patch]
 func (h *QueueSlotsHandler) UpdateQueueSlot(ctx *gin.Context) {
 	slotIDStr := ctx.Param("slot_id")
 	slotID, err := uuid.Parse(slotIDStr)
@@ -174,8 +220,20 @@ func (h *QueueSlotsHandler) UpdateQueueSlot(ctx *gin.Context) {
 	SuccessResponse(ctx, http.StatusOK, h.slotToDTO(slot, true))
 }
 
-// CancelQueueSlot cancels a sign-up (student can only cancel their own)
-// DELETE /queues/:queue_id/slots/:slot_id
+// CancelQueueSlot godoc
+// @Summary Cancel queue slot
+// @Description Cancels authenticated user's queue sign-up.
+// @Tags Queue Slots
+// @Produce json
+// @Security BearerAuth
+// @Param queue_id path string true "Queue ID"
+// @Param slot_id path string true "Slot ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 409 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /queues/{queue_id}/slots/{slot_id} [delete]
 func (h *QueueSlotsHandler) CancelQueueSlot(ctx *gin.Context) {
 	queueIDStr := ctx.Param("queue_id")
 	queueID, err := uuid.Parse(queueIDStr)
@@ -205,8 +263,21 @@ func (h *QueueSlotsHandler) CancelQueueSlot(ctx *gin.Context) {
 	ctx.JSON(http.StatusNoContent, nil)
 }
 
-// TransferFailedSlots transfers failed students from one queue to another
-// POST /queues/:queue_id/transfers
+// TransferFailedSlots godoc
+// @Summary Transfer failed slots
+// @Description Transfers failed students from source queue to target queue.
+// @Tags Queue Slots
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param queue_id path string true "Target queue ID"
+// @Param request body dto.TransferSlotsRequest true "Transfer slots request"
+// @Success 201 {object} dto.SuccessResponse{data=dto.TransferSlotsResponse}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /queues/{queue_id}/transfers [post]
 func (h *QueueSlotsHandler) TransferFailedSlots(ctx *gin.Context) {
 	queueIDStr := ctx.Param("queue_id")
 	toQueueID, err := uuid.Parse(queueIDStr)
@@ -243,9 +314,9 @@ func (h *QueueSlotsHandler) TransferFailedSlots(ctx *gin.Context) {
 		response = append(response, h.slotToDTO(slot, false))
 	}
 
-	SuccessResponse(ctx, http.StatusCreated, gin.H{
-		"transferred_count": count,
-		"slots":             response,
+	SuccessResponse(ctx, http.StatusCreated, dto.TransferSlotsResponse{
+		TransferredCount: count,
+		Slots:            response,
 	})
 }
 
