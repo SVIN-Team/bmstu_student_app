@@ -20,6 +20,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns all groups.",
@@ -64,6 +67,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Creates a new group.",
@@ -127,6 +133,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns group details by ID.",
@@ -189,6 +198,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Deletes group by ID.",
@@ -236,6 +248,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Updates group name.",
@@ -312,6 +327,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns paginated list of users.",
@@ -371,6 +389,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns user details by ID.",
@@ -433,6 +454,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Deletes user by ID.",
@@ -480,6 +504,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Partially updates user fields.",
@@ -626,6 +653,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Revokes current refresh token and clears auth cookies.",
@@ -675,6 +705,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Revokes all refresh tokens for the authenticated user and clears auth cookies.",
@@ -832,6 +865,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns lessons by group and date range.",
@@ -912,6 +948,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Imports lessons from uploaded JSON file (admin endpoint when enabled in routing).",
@@ -973,6 +1012,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns lesson details by lesson ID.",
@@ -1037,6 +1079,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns queues filtered by group and status with pagination.",
@@ -1112,6 +1157,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Creates a queue for the authenticated user's group.",
@@ -1157,6 +1205,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns detailed queue information by queue ID.",
@@ -1219,6 +1270,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Deletes a queue by ID.",
@@ -1272,6 +1326,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Updates queue status and limits.",
@@ -1354,6 +1411,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns all slots in a queue.",
@@ -1419,6 +1479,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Signs up authenticated user for queue and returns created slot data.",
@@ -1489,6 +1552,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns slot details by slot ID.",
@@ -1558,6 +1624,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Cancels authenticated user's queue sign-up.",
@@ -1618,6 +1687,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Updates queue slot status.",
@@ -1707,6 +1779,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Transfers failed students from source queue to target queue.",
@@ -1789,6 +1864,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns profile for authenticated user.",
@@ -1836,6 +1914,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Updates profile fields for authenticated user.",
@@ -1905,6 +1986,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Transfers headman role to another user in the same group.",
@@ -1980,6 +2064,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns authenticated user's slots with optional filters.",
@@ -2560,6 +2647,11 @@ const docTemplate = `{
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
+        },
+        "CookieAuth": {
+            "type": "apiKey",
+            "name": "access_token",
+            "in": "cookie"
         }
     }
 }`

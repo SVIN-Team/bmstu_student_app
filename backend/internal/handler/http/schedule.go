@@ -42,6 +42,7 @@ func NewScheduleHandler(scheduleUseCase ScheduleUseCase) *ScheduleHandler {
 // @Tags Lessons
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param group_id query string false "Group ID (UUID). If omitted, current user's group is used."
 // @Param date_from query string true "Start date in YYYY-MM-DD format"
 // @Param date_to query string true "End date in YYYY-MM-DD format"
@@ -114,6 +115,7 @@ func (h *ScheduleHandler) GetLessons(ctx *gin.Context) {
 // @Tags Lessons
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param id path string true "Lesson ID"
 // @Success 200 {object} dto.SuccessResponse{data=dto.LessonResponse}
 // @Failure 400 {object} dto.ErrorResponse
@@ -148,6 +150,7 @@ func (h *ScheduleHandler) GetLessonByID(ctx *gin.Context) {
 // @Accept mpfd
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param file formData file true "JSON file with import payload"
 // @Success 200 {object} dto.SuccessResponse{data=dto.ImportScheduleResponse}
 // @Failure 400 {object} dto.ErrorResponse

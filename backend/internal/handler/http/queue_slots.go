@@ -42,6 +42,7 @@ func NewQueueSlotsHandler(queueSlotsUseCase QueueSlotsUseCase, queueUseCase Queu
 // @Tags Queue Slots
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param queue_id path string true "Queue ID"
 // @Success 200 {object} dto.SuccessResponse{data=[]dto.SlotResponse}
 // @Failure 400 {object} dto.ErrorResponse
@@ -84,6 +85,7 @@ func (h *QueueSlotsHandler) GetQueueSlots(ctx *gin.Context) {
 // @Tags Queue Slots
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param queue_id path string true "Queue ID"
 // @Param slot_id path string true "Slot ID"
 // @Success 200 {object} dto.SuccessResponse{data=dto.SlotResponse}
@@ -118,6 +120,7 @@ func (h *QueueSlotsHandler) GetQueueSlot(ctx *gin.Context) {
 // @Tags Queue Slots
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param queue_id path string true "Queue ID"
 // @Success 201 {object} dto.SuccessResponse{data=dto.SlotResponse}
 // @Failure 400 {object} dto.ErrorResponse
@@ -176,6 +179,7 @@ func (h *QueueSlotsHandler) SignUpForQueue(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param queue_id path string true "Queue ID"
 // @Param slot_id path string true "Slot ID"
 // @Param request body dto.UpdateSlotRequest true "Update slot request"
@@ -226,6 +230,7 @@ func (h *QueueSlotsHandler) UpdateQueueSlot(ctx *gin.Context) {
 // @Tags Queue Slots
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param queue_id path string true "Queue ID"
 // @Param slot_id path string true "Slot ID"
 // @Success 204 "No Content"
@@ -270,6 +275,7 @@ func (h *QueueSlotsHandler) CancelQueueSlot(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param queue_id path string true "Target queue ID"
 // @Param request body dto.TransferSlotsRequest true "Transfer slots request"
 // @Success 201 {object} dto.SuccessResponse{data=dto.TransferSlotsResponse}

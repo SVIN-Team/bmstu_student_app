@@ -7,4 +7,5 @@ type AuthConfig struct {
 	RefreshSecretKey string
 	AccessLifeTime   time.Duration `yaml:"access_life_time"`
 	RefreshLifeTime  time.Duration `yaml:"refresh_life_time"`
+	InsecureCookies  bool          `yaml:"insecure_cookies"`
 }

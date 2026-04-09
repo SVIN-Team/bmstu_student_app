@@ -17,6 +17,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns all groups.",
@@ -61,6 +64,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Creates a new group.",
@@ -124,6 +130,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns group details by ID.",
@@ -186,6 +195,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Deletes group by ID.",
@@ -233,6 +245,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Updates group name.",
@@ -309,6 +324,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns paginated list of users.",
@@ -368,6 +386,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns user details by ID.",
@@ -430,6 +451,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Deletes user by ID.",
@@ -477,6 +501,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Partially updates user fields.",
@@ -623,6 +650,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Revokes current refresh token and clears auth cookies.",
@@ -672,6 +702,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Revokes all refresh tokens for the authenticated user and clears auth cookies.",
@@ -829,6 +862,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns lessons by group and date range.",
@@ -909,6 +945,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Imports lessons from uploaded JSON file (admin endpoint when enabled in routing).",
@@ -970,6 +1009,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns lesson details by lesson ID.",
@@ -1034,6 +1076,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns queues filtered by group and status with pagination.",
@@ -1109,6 +1154,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Creates a queue for the authenticated user's group.",
@@ -1154,6 +1202,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns detailed queue information by queue ID.",
@@ -1216,6 +1267,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Deletes a queue by ID.",
@@ -1269,6 +1323,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Updates queue status and limits.",
@@ -1351,6 +1408,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns all slots in a queue.",
@@ -1416,6 +1476,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Signs up authenticated user for queue and returns created slot data.",
@@ -1486,6 +1549,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns slot details by slot ID.",
@@ -1555,6 +1621,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Cancels authenticated user's queue sign-up.",
@@ -1615,6 +1684,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Updates queue slot status.",
@@ -1704,6 +1776,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Transfers failed students from source queue to target queue.",
@@ -1786,6 +1861,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns profile for authenticated user.",
@@ -1833,6 +1911,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Updates profile fields for authenticated user.",
@@ -1902,6 +1983,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Transfers headman role to another user in the same group.",
@@ -1977,6 +2061,9 @@
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Returns authenticated user's slots with optional filters.",
@@ -2557,6 +2644,11 @@
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
+        },
+        "CookieAuth": {
+            "type": "apiKey",
+            "name": "access_token",
+            "in": "cookie"
         }
     }
 }

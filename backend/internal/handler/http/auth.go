@@ -38,6 +38,10 @@ type AuthHandler struct {
 	authConf     *config.AuthConfig
 }
 
+func (h *AuthHandler) isCookieSecure() bool {
+	return !h.authConf.InsecureCookies
+}
+
 func NewAuthHandler(authUseCase AuthUseCase, groupUseCase GroupUseCase, cfg *config.AuthConfig) *AuthHandler {
 	if cfg == nil {
 		panic(errors.New("auth config is nil"))
@@ -88,10 +92,11 @@ func (h *AuthHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 
+	secure := h.isCookieSecure()
 	ctx.SetCookie("access_token", access, int(h.authConf.AccessLifeTime.Seconds()),
-		"/", "", true, true)
+		"/", "", secure, true)
 	ctx.SetCookie("refresh_token", refresh, int(h.authConf.RefreshLifeTime.Seconds()),
-		"/api/v1/tokens/refresh", "", true, true)
+		"/api/v1/auth/refresh", "", secure, true)
 
 	SuccessResponse(ctx, http.StatusOK, dto.AuthSignUpResponse{
 		ID:        userId.String(),
@@ -138,10 +143,11 @@ func (h *AuthHandler) SignIn(ctx *gin.Context) {
 		return
 	}
 
+	secure := h.isCookieSecure()
 	ctx.SetCookie("access_token", access, int(h.authConf.AccessLifeTime.Seconds()),
-		"/", "", true, true)
+		"/", "", secure, true)
 	ctx.SetCookie("refresh_token", refresh, int(h.authConf.RefreshLifeTime.Seconds()),
-		"/api/v1/tokens/refresh", "", true, true)
+		"/api/v1/auth/refresh", "", secure, true)
 	SuccessResponse(ctx, http.StatusOK, dto.AuthSignInResponse{
 		ID: userId.String(),
 	})
@@ -173,10 +179,11 @@ func (h *AuthHandler) Refresh(ctx *gin.Context) {
 		return
 	}
 
+	secure := h.isCookieSecure()
 	ctx.SetCookie("access_token", access, int(h.authConf.AccessLifeTime.Seconds()),
-		"/", "", true, true)
+		"/", "", secure, true)
 	ctx.SetCookie("refresh_token", newRefresh, int(h.authConf.RefreshLifeTime.Seconds()),
-		"/api/v1/tokens/refresh", "", true, true)
+		"/api/v1/auth/refresh", "", secure, true)
 
 	SuccessResponse(ctx, http.StatusOK, dto.AuthRefreshResponse{
 		AccessToken: access,
@@ -190,6 +197,7 @@ func (h *AuthHandler) Refresh(ctx *gin.Context) {
 // @Tags Auth
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Success 200 {object} dto.SuccessResponse{data=dto.MessageResponse}
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
@@ -208,8 +216,9 @@ func (h *AuthHandler) SignOut(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("access_token", "", -1, "/", "", true, true)
-	ctx.SetCookie("refresh_token", "", -1, "/api/v1/tokens/refresh", "", true, true)
+	secure := h.isCookieSecure()
+	ctx.SetCookie("access_token", "", -1, "/", "", secure, true)
+	ctx.SetCookie("refresh_token", "", -1, "/api/v1/auth/refresh", "", secure, true)
 
 	SuccessResponse(ctx, http.StatusOK, dto.MessageResponse{
 		Message: "Successfully signed out",
@@ -222,6 +231,7 @@ func (h *AuthHandler) SignOut(ctx *gin.Context) {
 // @Tags Auth
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Success 200 {object} dto.SuccessResponse{data=dto.MessageResponse}
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
@@ -247,8 +257,9 @@ func (h *AuthHandler) SignOutAll(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("access_token", "", -1, "/", "", true, true)
-	ctx.SetCookie("refresh_token", "", -1, "/api/v1/tokens/refresh", "", true, true)
+	secure := h.isCookieSecure()
+	ctx.SetCookie("access_token", "", -1, "/", "", secure, true)
+	ctx.SetCookie("refresh_token", "", -1, "/api/v1/auth/refresh", "", secure, true)
 
 	SuccessResponse(ctx, http.StatusOK, dto.MessageResponse{
 		Message: "Successfully signed out from all devices",

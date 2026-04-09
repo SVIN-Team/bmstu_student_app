@@ -16,6 +16,9 @@ import (
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
+// @securityDefinitions.apikey CookieAuth
+// @in cookie
+// @name access_token
 func main() {
 	configPath := pflag.StringP("config", "c", "config.yaml", "Path to application config file")
 	pflag.Parse()

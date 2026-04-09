@@ -365,6 +365,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: List groups (admin)
       tags:
       - Admin Groups
@@ -401,6 +402,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Create group (admin)
       tags:
       - Admin Groups
@@ -432,6 +434,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Delete group (admin)
       tags:
       - Admin Groups
@@ -469,6 +472,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Get group by ID (admin)
       tags:
       - Admin Groups
@@ -514,6 +518,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Update group (admin)
       tags:
       - Admin Groups
@@ -549,6 +554,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: List users (admin)
       tags:
       - Admin Users
@@ -580,6 +586,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Delete user (admin)
       tags:
       - Admin Users
@@ -617,6 +624,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Get user by ID (admin)
       tags:
       - Admin Users
@@ -662,6 +670,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Update user (admin)
       tags:
       - Admin Users
@@ -733,6 +742,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Sign out from current device
       tags:
       - Auth
@@ -762,6 +772,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Sign out from all devices
       tags:
       - Auth
@@ -877,6 +888,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: List lessons
       tags:
       - Lessons
@@ -915,6 +927,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Get lesson by ID
       tags:
       - Lessons
@@ -952,6 +965,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Import schedule
       tags:
       - Lessons
@@ -999,6 +1013,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: List queues
       tags:
       - Queues
@@ -1026,6 +1041,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Create queue
       tags:
       - Queues
@@ -1061,6 +1077,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Delete queue
       tags:
       - Queues
@@ -1098,6 +1115,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Get queue by ID
       tags:
       - Queues
@@ -1147,6 +1165,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Update queue
       tags:
       - Queues
@@ -1187,6 +1206,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: List queue slots
       tags:
       - Queue Slots
@@ -1229,6 +1249,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Sign up for queue
       tags:
       - Queue Slots
@@ -1269,6 +1290,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Cancel queue slot
       tags:
       - Queue Slots
@@ -1311,6 +1333,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Get queue slot by ID
       tags:
       - Queue Slots
@@ -1365,6 +1388,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Update queue slot
       tags:
       - Queue Slots
@@ -1415,6 +1439,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Transfer failed slots
       tags:
       - Queue Slots
@@ -1443,6 +1468,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Get current user
       tags:
       - Users
@@ -1483,6 +1509,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Update current user
       tags:
       - Users
@@ -1528,6 +1555,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Transfer headman role
       tags:
       - Users
@@ -1563,6 +1591,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
+      - CookieAuth: []
       summary: Get current user slots
       tags:
       - Users
@@ -1573,5 +1602,9 @@ securityDefinitions:
   BearerAuth:
     in: header
     name: Authorization
+    type: apiKey
+  CookieAuth:
+    in: cookie
+    name: access_token
     type: apiKey
 swagger: "2.0"

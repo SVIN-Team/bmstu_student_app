@@ -8,6 +8,7 @@ import (
 
 	errors2 "stud_hub/internal/errors"
 	"stud_hub/internal/handler/http/dto"
+	"stud_hub/internal/handler/middleware"
 	"stud_hub/internal/models"
 	"stud_hub/util/logger"
 
@@ -40,12 +41,13 @@ func NewUserHandler(userUseCase UserUseCase, groupUseCase GroupUseCase) *UserHan
 // @Tags Users
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Success 200 {object} dto.SuccessResponse{data=dto.UserResponse}
 // @Failure 404 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /users/me [get]
 func (h *UserHandler) GetCurrentUser(ctx *gin.Context) {
-	userID := ctx.MustGet("user_id").(uuid.UUID)
+	userID := ctx.MustGet(string(middleware.UserIDContextKey)).(uuid.UUID)
 
 	user, err := h.userUseCase.GetUserByID(ctx, userID)
 	if errors.Is(err, errors2.ErrUserNotFound) {
@@ -68,6 +70,7 @@ func (h *UserHandler) GetCurrentUser(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param request body dto.UpdateUserRequest true "Update user request"
 // @Success 200 {object} dto.SuccessResponse{data=dto.UserResponse}
 // @Failure 400 {object} dto.ErrorResponse
@@ -75,7 +78,7 @@ func (h *UserHandler) GetCurrentUser(ctx *gin.Context) {
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /users/me [patch]
 func (h *UserHandler) UpdateCurrentUser(ctx *gin.Context) {
-	userID := ctx.MustGet("user_id").(uuid.UUID)
+	userID := ctx.MustGet(string(middleware.UserIDContextKey)).(uuid.UUID)
 
 	var req dto.UpdateUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -123,13 +126,14 @@ func (h *UserHandler) UpdateCurrentUser(ctx *gin.Context) {
 // @Tags Users
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param status query string false "Slot status filter"
 // @Param queue_status query string false "Queue status filter"
 // @Success 200 {object} dto.SuccessResponse{data=[]dto.SlotResponse}
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /users/me/slots [get]
 func (h *UserHandler) GetCurrentUserSlots(ctx *gin.Context) {
-	userID := ctx.MustGet("user_id").(uuid.UUID)
+	userID := ctx.MustGet(string(middleware.UserIDContextKey)).(uuid.UUID)
 
 	statusFilter := ctx.Query("status")
 	queueStatusFilter := ctx.Query("queue_status")
@@ -164,6 +168,7 @@ func (h *UserHandler) GetCurrentUserSlots(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param request body dto.TransferHeadmanRoleRequest true "Transfer headman role request"
 // @Success 200 {object} dto.SuccessResponse{data=dto.TransferHeadmanRoleResponse}
 // @Failure 400 {object} dto.ErrorResponse
@@ -172,7 +177,7 @@ func (h *UserHandler) GetCurrentUserSlots(ctx *gin.Context) {
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /users/me/headman-role [put]
 func (h *UserHandler) TransferHeadmanRole(ctx *gin.Context) {
-	userID := ctx.MustGet("user_id").(uuid.UUID)
+	userID := ctx.MustGet(string(middleware.UserIDContextKey)).(uuid.UUID)
 
 	var req dto.TransferHeadmanRoleRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

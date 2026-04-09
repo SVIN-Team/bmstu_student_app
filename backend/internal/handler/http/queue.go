@@ -41,6 +41,7 @@ func NewQueueHandler(queueUseCase QueueUseCase, groupUseCase GroupUseCase) *Queu
 // @Tags Queues
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param group_id query string false "Group ID (UUID). If omitted, current user's group is used."
 // @Param status query string false "Queue status filter"
 // @Param page query int false "Page number" default(1)
@@ -129,6 +130,7 @@ func (h *QueueHandler) GetQueues(ctx *gin.Context) {
 // @Tags Queues
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param queue_id path string true "Queue ID"
 // @Success 200 {object} dto.SuccessResponse{data=dto.QueueResponse}
 // @Failure 400 {object} dto.ErrorResponse
@@ -163,6 +165,7 @@ func (h *QueueHandler) GetQueueByID(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param request body dto.CreateQueueRequest true "Create queue request"
 // @Success 501 {object} dto.ErrorResponse
 // @Failure 400 {object} dto.ErrorResponse
@@ -192,6 +195,7 @@ func (h *QueueHandler) CreateQueue(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param queue_id path string true "Queue ID"
 // @Param request body dto.UpdateQueueRequest true "Update queue request"
 // @Success 200 {object} dto.SuccessResponse{data=dto.QueueResponse}
@@ -251,6 +255,7 @@ func (h *QueueHandler) UpdateQueue(ctx *gin.Context) {
 // @Tags Queues
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param queue_id path string true "Queue ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} dto.ErrorResponse

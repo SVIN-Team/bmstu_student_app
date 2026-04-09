@@ -49,6 +49,7 @@ func NewAdminHandler(
 // @Tags Admin Users
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param page query int false "Page number" default(1)
 // @Param per_page query int false "Items per page" default(20)
 // @Success 200 {object} dto.SuccessResponse{data=dto.UserListResponse}
@@ -90,6 +91,7 @@ func (h *AdminHandler) GetUsers(ctx *gin.Context) {
 // @Tags Admin Users
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param id path string true "User ID"
 // @Success 200 {object} dto.SuccessResponse{data=dto.UserResponse}
 // @Failure 400 {object} dto.ErrorResponse
@@ -124,6 +126,7 @@ func (h *AdminHandler) GetUserByID(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param id path string true "User ID"
 // @Param request body dto.AdminUpdateUserRequest true "Admin update user request"
 // @Success 200 {object} dto.SuccessResponse{data=dto.UserResponse}
@@ -196,6 +199,7 @@ func (h *AdminHandler) UpdateUser(ctx *gin.Context) {
 // @Tags Admin Users
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param id path string true "User ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} dto.ErrorResponse
@@ -231,6 +235,7 @@ func (h *AdminHandler) DeleteUser(ctx *gin.Context) {
 // @Tags Admin Groups
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Success 200 {object} dto.SuccessResponse{data=[]dto.GroupResponse}
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /admin/groups [get]
@@ -260,6 +265,7 @@ func (h *AdminHandler) GetGroups(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param request body dto.AdminUpsertGroupRequest true "Create group request"
 // @Success 201 {object} dto.SuccessResponse{data=dto.GroupResponse}
 // @Failure 400 {object} dto.ErrorResponse
@@ -297,6 +303,7 @@ func (h *AdminHandler) CreateGroup(ctx *gin.Context) {
 // @Tags Admin Groups
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param id path string true "Group ID"
 // @Success 200 {object} dto.SuccessResponse{data=dto.GroupResponse}
 // @Failure 400 {object} dto.ErrorResponse
@@ -334,6 +341,7 @@ func (h *AdminHandler) GetGroupByID(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param id path string true "Group ID"
 // @Param request body dto.AdminUpsertGroupRequest true "Update group request"
 // @Success 200 {object} dto.SuccessResponse{data=dto.GroupResponse}
@@ -383,6 +391,7 @@ func (h *AdminHandler) UpdateGroup(ctx *gin.Context) {
 // @Tags Admin Groups
 // @Produce json
 // @Security BearerAuth
+// @Security CookieAuth
 // @Param id path string true "Group ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} dto.ErrorResponse
