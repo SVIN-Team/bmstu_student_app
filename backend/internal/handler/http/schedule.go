@@ -37,15 +37,16 @@ func NewScheduleHandler(scheduleUseCase ScheduleUseCase) *ScheduleHandler {
 }
 
 // GetLessons godoc
-// @Summary List lessons
-// @Description Returns lessons by group and date range.
+// @Summary Получить список уроков
+// @Description Получить список уроков от начальной до конечной даты, НО НЕ БОЛЕЕ 30 ДНЕЙ ОТ СТАРТОВОЙ ДАТЫ.
+// @Description Если конечная дата > начальная + 30 дней, то конечная дата = начальная + 30 дней. Cry about it.
 // @Tags Lessons
 // @Produce json
 // @Security BearerAuth
 // @Security CookieAuth
-// @Param group_id query string false "Group ID (UUID). If omitted, current user's group is used."
-// @Param date_from query string true "Start date in YYYY-MM-DD format"
-// @Param date_to query string true "End date in YYYY-MM-DD format"
+// @Param group_id query string false "Group ID (UUID)"
+// @Param date_from query string true "Начальная дата в формате YYYY-MM-DD"
+// @Param date_to query string true "Конечная дата в формате YYYY-MM-DD."
 // @Success 200 {object} dto.SuccessResponse{data=[]dto.LessonResponse}
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 404 {object} dto.ErrorResponse
@@ -61,7 +62,7 @@ func (h *ScheduleHandler) GetLessons(ctx *gin.Context) {
 		return
 	}
 
-	// If no group_id provided, use the user's group
+	// If no group_id provided, use the user's group (IT DOESNT WORK STOOPID)
 	var groupID uuid.UUID
 	if groupIDStr == "" {
 		userGroupID, exists := ctx.Get("user_group_id")
@@ -110,8 +111,8 @@ func (h *ScheduleHandler) GetLessons(ctx *gin.Context) {
 }
 
 // GetLessonByID godoc
-// @Summary Get lesson by ID
-// @Description Returns lesson details by lesson ID.
+// @Summary Получить урок по ID
+// @Description Возвращает информацию об уроке по идентификатору.
 // @Tags Lessons
 // @Produce json
 // @Security BearerAuth
@@ -144,8 +145,21 @@ func (h *ScheduleHandler) GetLessonByID(ctx *gin.Context) {
 }
 
 // ImportSchedule godoc
-// @Summary Import schedule
-// @Description Imports lessons from uploaded JSON file (admin endpoint when enabled in routing).
+// @Summary Импортировать расписание (Админ)
+// @Description Импорт расписание из JSON файла определённого формата.
+// @Description	{
+// @Description	  "group_name": "ИУ7-81Б",
+// @Description	  "lessons": [
+// @Description	    {
+// @Description	      "subject_name": "Базы данных",
+// @Description	      "teacher_name": "Иванов И.И.",
+// @Description	      "room_name": "ГУК-513",
+// @Description	      "type": "lecture",
+// @Description	      "starts_at": "2026-02-23T09:00:00Z",
+// @Description	      "ends_at": "2026-02-23T10:30:00Z"
+// @Description	    }
+// @Description	  ]
+// @Description	}
 // @Tags Lessons
 // @Accept mpfd
 // @Produce json
@@ -209,7 +223,7 @@ func (h *ScheduleHandler) ImportSchedule(ctx *gin.Context) {
 		}
 
 		row := models.ScheduleImportRow{
-			GroupName:         req.GroupID.String(), // Note: This should be group name, but API expects group_id
+			GroupName:         req.GroupName, // Note: This should be group name, but API expects group_id
 			SubjectName:       lessonReq.SubjectName,
 			TeacherLastName:   lastName,
 			TeacherFirstName:  firstName,

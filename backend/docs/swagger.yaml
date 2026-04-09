@@ -844,18 +844,20 @@ paths:
       - Auth
   /lessons:
     get:
-      description: Returns lessons by group and date range.
+      description: |-
+        Получить список уроков от начальной до конечной даты, НО НЕ БОЛЕЕ 30 ДНЕЙ ОТ СТАРТОВОЙ ДАТЫ.
+        Если конечная дата > начальная + 30 дней, то конечная дата = начальная + 30 дней. Cry about it.
       parameters:
-      - description: Group ID (UUID). If omitted, current user's group is used.
+      - description: Group ID (UUID)
         in: query
         name: group_id
         type: string
-      - description: Start date in YYYY-MM-DD format
+      - description: Начальная дата в формате YYYY-MM-DD
         in: query
         name: date_from
         required: true
         type: string
-      - description: End date in YYYY-MM-DD format
+      - description: Конечная дата в формате YYYY-MM-DD.
         in: query
         name: date_to
         required: true
@@ -889,12 +891,12 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: List lessons
+      summary: Получить список уроков
       tags:
       - Lessons
   /lessons/{id}:
     get:
-      description: Returns lesson details by lesson ID.
+      description: Возвращает информацию об уроке по идентификатору.
       parameters:
       - description: Lesson ID
         in: path
@@ -928,15 +930,28 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: Get lesson by ID
+      summary: Получить урок по ID
       tags:
       - Lessons
   /lessons/imports:
     post:
       consumes:
       - multipart/form-data
-      description: Imports lessons from uploaded JSON file (admin endpoint when enabled
-        in routing).
+      description: |-
+        Импорт расписание из JSON файла определённого формата.
+        {
+        "group_name": "ИУ7-81Б",
+        "lessons": [
+        {
+        "subject_name": "Базы данных",
+        "teacher_name": "Иванов И.И.",
+        "room_name": "ГУК-513",
+        "type": "lecture",
+        "starts_at": "2026-02-23T09:00:00Z",
+        "ends_at": "2026-02-23T10:30:00Z"
+        }
+        ]
+        }
       parameters:
       - description: JSON file with import payload
         in: formData
@@ -966,7 +981,7 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: Import schedule
+      summary: Импортировать расписание (Админ)
       tags:
       - Lessons
   /queues:

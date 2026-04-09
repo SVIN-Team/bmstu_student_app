@@ -180,5 +180,3 @@ func (r *LessonRepository) getQueueIDByLesson(ctx context.Context, lessonID uuid
 	}
 	return &q.ID, nil
 }
-
-

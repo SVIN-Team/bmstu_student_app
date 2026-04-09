@@ -2,8 +2,6 @@ package dto
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // LessonResponse represents the response body for a lesson
@@ -20,8 +18,8 @@ type LessonResponse struct {
 
 // ImportScheduleRequest represents the request for importing schedule
 type ImportScheduleRequest struct {
-	GroupID uuid.UUID                  `json:"group_id" binding:"required"`
-	Lessons []ScheduleImportRowRequest `json:"lessons" binding:"required"`
+	GroupName string                     `json:"group_name" binding:"required"`
+	Lessons   []ScheduleImportRowRequest `json:"lessons" binding:"required"`
 }
 
 // ScheduleImportRowRequest represents a single lesson in import file

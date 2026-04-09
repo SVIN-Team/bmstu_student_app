@@ -108,7 +108,10 @@ func Run(cfg *config.ApplicationConfig) {
 		{
 			lessons.GET("", scheduleHandler.GetLessons)
 			lessons.GET("/:id", scheduleHandler.GetLessonByID)
-			// lessons.POST("/imports", scheduleHandler.ImportSchedule) // admin only
+
+			lessonsAdmin := lessons.Group("")
+			lessonsAdmin.Use(authMiddleware.AdminRequired())
+			lessonsAdmin.POST("/imports", scheduleHandler.ImportSchedule)
 		}
 
 		// Queues
@@ -162,7 +165,6 @@ func Run(cfg *config.ApplicationConfig) {
 				adminGroups.PATCH("/:id", adminHandler.UpdateGroup)
 				adminGroups.DELETE("/:id", adminHandler.DeleteGroup)
 			}
-
 			// TODO: Subjects, Teachers, Rooms CRUD
 		}
 	}

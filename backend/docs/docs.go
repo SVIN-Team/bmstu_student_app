@@ -870,31 +870,31 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Returns lessons by group and date range.",
+                "description": "Получить список уроков от начальной до конечной даты, НО НЕ БОЛЕЕ 30 ДНЕЙ ОТ СТАРТОВОЙ ДАТЫ.\nЕсли конечная дата \u003e начальная + 30 дней, то конечная дата = начальная + 30 дней. Cry about it.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Lessons"
                 ],
-                "summary": "List lessons",
+                "summary": "Получить список уроков",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Group ID (UUID). If omitted, current user's group is used.",
+                        "description": "Group ID (UUID)",
                         "name": "group_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Start date in YYYY-MM-DD format",
+                        "description": "Начальная дата в формате YYYY-MM-DD",
                         "name": "date_from",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "End date in YYYY-MM-DD format",
+                        "description": "Конечная дата в формате YYYY-MM-DD.",
                         "name": "date_to",
                         "in": "query",
                         "required": true
@@ -953,7 +953,7 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Imports lessons from uploaded JSON file (admin endpoint when enabled in routing).",
+                "description": "Импорт расписание из JSON файла определённого формата.\n{\n\"group_name\": \"ИУ7-81Б\",\n\"lessons\": [\n{\n\"subject_name\": \"Базы данных\",\n\"teacher_name\": \"Иванов И.И.\",\n\"room_name\": \"ГУК-513\",\n\"type\": \"lecture\",\n\"starts_at\": \"2026-02-23T09:00:00Z\",\n\"ends_at\": \"2026-02-23T10:30:00Z\"\n}\n]\n}",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -963,7 +963,7 @@ const docTemplate = `{
                 "tags": [
                     "Lessons"
                 ],
-                "summary": "Import schedule",
+                "summary": "Импортировать расписание (Админ)",
                 "parameters": [
                     {
                         "type": "file",
@@ -1017,14 +1017,14 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Returns lesson details by lesson ID.",
+                "description": "Возвращает информацию об уроке по идентификатору.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Lessons"
                 ],
-                "summary": "Get lesson by ID",
+                "summary": "Получить урок по ID",
                 "parameters": [
                     {
                         "type": "string",
