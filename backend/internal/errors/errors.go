@@ -54,5 +54,6 @@ var (
 )
 
 var (
-	ErrUserDuplicate = errors.New("user with this email already exists")
+	ErrUniqueViolationFault = errors.New("unique violation fault")
+	ErrUserDuplicate        = errors.New("user with this email already exists")
 )

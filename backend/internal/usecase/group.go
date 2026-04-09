@@ -75,6 +75,9 @@ func (g *GroupUseCase) Update(ctx context.Context, group models.Group) error {
 
 	if err := g.groupRepo.Update(ctx, group); err != nil {
 		logger.Errorf(ctx, "failed to update group: %v", err)
+		if errors.Is(err, apperrors.ErrUniqueViolationFault) {
+			return apperrors.ErrUniqueViolationFault
+		}
 		return apperrors.ErrInternalServer
 	}
 

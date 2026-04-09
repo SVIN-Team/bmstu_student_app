@@ -230,8 +230,8 @@ func (h *AdminHandler) DeleteUser(ctx *gin.Context) {
 // ==================== Groups Management ====================
 
 // GetGroups godoc
-// @Summary List groups (admin)
-// @Description Returns all groups.
+// @Summary Получить все группы (Админ)
+// @Description Вернуть список всех существующих групп
 // @Tags Admin Groups
 // @Produce json
 // @Security BearerAuth
@@ -259,8 +259,8 @@ func (h *AdminHandler) GetGroups(ctx *gin.Context) {
 }
 
 // CreateGroup godoc
-// @Summary Create group (admin)
-// @Description Creates a new group.
+// @Summary Создать группу (Админ)
+// @Description Создать новую группу по имени
 // @Tags Admin Groups
 // @Accept json
 // @Produce json
@@ -286,7 +286,11 @@ func (h *AdminHandler) CreateGroup(ctx *gin.Context) {
 
 	id, err := h.groupUseCase.Create(ctx, group)
 	if err != nil {
-		InternalError(ctx, fmt.Sprintf("Failed to create group: %v", err))
+		if errors.Is(err, errors2.ErrGroupAlreadyExists) {
+			ValidationError(ctx, fmt.Sprintf("Failed to create group: %v", err))
+		} else {
+			InternalError(ctx, fmt.Sprintf("Failed to create group: %v", err))
+		}
 		logger.Errorf(ctx, "Failed to create group: %v", err)
 		return
 	}
@@ -298,8 +302,8 @@ func (h *AdminHandler) CreateGroup(ctx *gin.Context) {
 }
 
 // GetGroupByID godoc
-// @Summary Get group by ID (admin)
-// @Description Returns group details by ID.
+// @Summary Получить группу по ID (Админ)
+// @Description Получить информацию о группе по ID
 // @Tags Admin Groups
 // @Produce json
 // @Security BearerAuth
@@ -335,8 +339,8 @@ func (h *AdminHandler) GetGroupByID(ctx *gin.Context) {
 }
 
 // UpdateGroup godoc
-// @Summary Update group (admin)
-// @Description Updates group name.
+// @Summary Обновить группу (Админ)
+// @Description Обновить имя группы
 // @Tags Admin Groups
 // @Accept json
 // @Produce json
@@ -374,7 +378,11 @@ func (h *AdminHandler) UpdateGroup(ctx *gin.Context) {
 		NotFoundError(ctx, "Group not found")
 		return
 	} else if err != nil {
-		InternalError(ctx, fmt.Sprintf("Failed to update group: %v", err))
+		if errors.Is(err, errors2.ErrUniqueViolationFault) {
+			ValidationError(ctx, "Failed to update group: group with that name already exists")
+		} else {
+			InternalError(ctx, fmt.Sprintf("Failed to update group: %v", err))
+		}
 		logger.Errorf(ctx, "Failed to update group: %v", err)
 		return
 	}
@@ -386,8 +394,8 @@ func (h *AdminHandler) UpdateGroup(ctx *gin.Context) {
 }
 
 // DeleteGroup godoc
-// @Summary Delete group (admin)
-// @Description Deletes group by ID.
+// @Summary Удалить группу (Админ)
+// @Description Удалить группу насовсем, если в ней нет участников
 // @Tags Admin Groups
 // @Produce json
 // @Security BearerAuth
@@ -411,7 +419,11 @@ func (h *AdminHandler) DeleteGroup(ctx *gin.Context) {
 		NotFoundError(ctx, "Group not found")
 		return
 	} else if err != nil {
-		InternalError(ctx, fmt.Sprintf("Failed to delete group: %v", err))
+		if errors.Is(err, errors2.ErrGroupHasUsers) {
+			ValidationError(ctx, fmt.Sprintf("Failed to delete group: %v", err))
+		} else {
+			InternalError(ctx, fmt.Sprintf("Failed to delete group: %v", err))
+		}
 		logger.Errorf(ctx, "Failed to delete group: %v", err)
 		return
 	}

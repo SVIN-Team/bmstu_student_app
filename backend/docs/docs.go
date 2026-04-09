@@ -25,14 +25,14 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Returns all groups.",
+                "description": "Вернуть список всех существующих групп",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Admin Groups"
                 ],
-                "summary": "List groups (admin)",
+                "summary": "Получить все группы (Админ)",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -72,7 +72,7 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Creates a new group.",
+                "description": "Создать новую группу по имени",
                 "consumes": [
                     "application/json"
                 ],
@@ -82,7 +82,7 @@ const docTemplate = `{
                 "tags": [
                     "Admin Groups"
                 ],
-                "summary": "Create group (admin)",
+                "summary": "Создать группу (Админ)",
                 "parameters": [
                     {
                         "description": "Create group request",
@@ -138,14 +138,14 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Returns group details by ID.",
+                "description": "Получить информацию о группе по ID",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Admin Groups"
                 ],
-                "summary": "Get group by ID (admin)",
+                "summary": "Получить группу по ID (Админ)",
                 "parameters": [
                     {
                         "type": "string",
@@ -203,14 +203,14 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Deletes group by ID.",
+                "description": "Удалить группу насовсем, если в ней нет участников",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Admin Groups"
                 ],
-                "summary": "Delete group (admin)",
+                "summary": "Удалить группу (Админ)",
                 "parameters": [
                     {
                         "type": "string",
@@ -253,7 +253,7 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Updates group name.",
+                "description": "Обновить имя группы",
                 "consumes": [
                     "application/json"
                 ],
@@ -263,7 +263,7 @@ const docTemplate = `{
                 "tags": [
                     "Admin Groups"
                 ],
-                "summary": "Update group (admin)",
+                "summary": "Обновить группу (Админ)",
                 "parameters": [
                     {
                         "type": "string",

@@ -22,13 +22,16 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
+func isUniqueViolationFault(err error) bool {
+	return strings.Contains(err.Error(), "23505)") // PostgreSQL error code for unique constraint violation :P
+}
+
 func (r *UserRepository) CreateUser(ctx context.Context, user models.User) (uuid.UUID, error) {
 	gUser := gormmodels.ToGormUser(user)
 
 	if err := r.db.WithContext(ctx).Create(&gUser).Error; err != nil {
 		logger.Errorf(ctx, "gorm: failed to create user %s: %v", user.Email, err)
-		errMsg := err.Error()
-		if strings.Contains(errMsg, "23505)") { // PostgreSQL error code for unique constraint violation :P
+		if isUniqueViolationFault(err) {
 			return uuid.UUID{}, autherrors.ErrUserDuplicate
 		}
 		return uuid.UUID{}, autherrors.ErrInternalServer

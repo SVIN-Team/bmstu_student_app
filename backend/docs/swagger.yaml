@@ -344,7 +344,7 @@ info:
 paths:
   /admin/groups:
     get:
-      description: Returns all groups.
+      description: Вернуть список всех существующих групп
       produces:
       - application/json
       responses:
@@ -366,13 +366,13 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: List groups (admin)
+      summary: Получить все группы (Админ)
       tags:
       - Admin Groups
     post:
       consumes:
       - application/json
-      description: Creates a new group.
+      description: Создать новую группу по имени
       parameters:
       - description: Create group request
         in: body
@@ -403,12 +403,12 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: Create group (admin)
+      summary: Создать группу (Админ)
       tags:
       - Admin Groups
   /admin/groups/{id}:
     delete:
-      description: Deletes group by ID.
+      description: Удалить группу насовсем, если в ней нет участников
       parameters:
       - description: Group ID
         in: path
@@ -435,11 +435,11 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: Delete group (admin)
+      summary: Удалить группу (Админ)
       tags:
       - Admin Groups
     get:
-      description: Returns group details by ID.
+      description: Получить информацию о группе по ID
       parameters:
       - description: Group ID
         in: path
@@ -473,13 +473,13 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: Get group by ID (admin)
+      summary: Получить группу по ID (Админ)
       tags:
       - Admin Groups
     patch:
       consumes:
       - application/json
-      description: Updates group name.
+      description: Обновить имя группы
       parameters:
       - description: Group ID
         in: path
@@ -519,7 +519,7 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: Update group (admin)
+      summary: Обновить группу (Админ)
       tags:
       - Admin Groups
   /admin/users:

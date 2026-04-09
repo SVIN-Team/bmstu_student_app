@@ -72,9 +72,11 @@ func (r *GroupRepository) Create(ctx context.Context, group models.Group) (uuid.
 }
 
 func (r *GroupRepository) Update(ctx context.Context, group models.Group) error {
-	if err := r.db.WithContext(ctx).Model(&gormmodels.Group{ID: group.ID}).
-		Update("name", group.Name).Error; err != nil {
+	if err := r.db.WithContext(ctx).Model(&gormmodels.Group{ID: group.ID}).Update("name", group.Name).Error; err != nil {
 		logger.Errorf(ctx, "gorm: failed to update group %s: %v", group.ID, err)
+		if isUniqueViolationFault(err) {
+			return apperrors.ErrUniqueViolationFault
+		}
 		return apperrors.ErrInternalServer
 	}
 	return nil
