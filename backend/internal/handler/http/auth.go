@@ -54,8 +54,8 @@ func NewAuthHandler(authUseCase AuthUseCase, groupUseCase GroupUseCase, cfg *con
 }
 
 // SignUp godoc
-// @Summary Register a new user
-// @Description Creates a new user in an existing group and returns created user payload.
+// @Summary Регистрация нового пользователя
+// @Description Создает нового пользователя в существующей группе и возвращает данные о созданном пользователе.
 // @Tags Auth
 // @Accept json
 // @Produce json
@@ -87,8 +87,11 @@ func (h *AuthHandler) SignUp(ctx *gin.Context) {
 
 	access, refresh, userId, err := h.authUseCase.SignUp(ctx, userModel)
 	if err != nil {
-		// TODO: classify errors
-		InternalError(ctx, fmt.Sprintf("could not sign up: %v", err))
+		if errors.Is(err, errors2.ErrUserDuplicate) {
+			ValidationError(ctx, fmt.Sprintf("could not create user: %v", err))
+		} else {
+			InternalError(ctx, fmt.Sprintf("could not sign up: %v", err))
+		}
 		return
 	}
 
@@ -96,7 +99,7 @@ func (h *AuthHandler) SignUp(ctx *gin.Context) {
 	ctx.SetCookie("access_token", access, int(h.authConf.AccessLifeTime.Seconds()),
 		"/", "", secure, true)
 	ctx.SetCookie("refresh_token", refresh, int(h.authConf.RefreshLifeTime.Seconds()),
-		"/api/v1/auth/refresh", "", secure, true)
+		"/api/v1/auth/", "", secure, true)
 
 	SuccessResponse(ctx, http.StatusOK, dto.AuthSignUpResponse{
 		ID:        userId.String(),
@@ -107,8 +110,8 @@ func (h *AuthHandler) SignUp(ctx *gin.Context) {
 }
 
 // SignIn godoc
-// @Summary Sign in
-// @Description Authenticates user credentials and sets auth cookies.
+// @Summary Войти
+// @Description Проверяет учетные данные пользователя и устанавливает файлы cookie аутентификации.
 // @Tags Auth
 // @Accept json
 // @Produce json
@@ -147,15 +150,15 @@ func (h *AuthHandler) SignIn(ctx *gin.Context) {
 	ctx.SetCookie("access_token", access, int(h.authConf.AccessLifeTime.Seconds()),
 		"/", "", secure, true)
 	ctx.SetCookie("refresh_token", refresh, int(h.authConf.RefreshLifeTime.Seconds()),
-		"/api/v1/auth/refresh", "", secure, true)
+		"/api/v1/auth/", "", secure, true)
 	SuccessResponse(ctx, http.StatusOK, dto.AuthSignInResponse{
 		ID: userId.String(),
 	})
 }
 
 // Refresh godoc
-// @Summary Refresh access token
-// @Description Refreshes access and refresh tokens using refresh cookie.
+// @Summary Обновить токен через refresh_token
+// @Description Обновляет токены доступа и обновления с помощью cookie обновления.
 // @Tags Auth
 // @Produce json
 // @Success 200 {object} dto.SuccessResponse{data=dto.AuthRefreshResponse}
@@ -183,7 +186,7 @@ func (h *AuthHandler) Refresh(ctx *gin.Context) {
 	ctx.SetCookie("access_token", access, int(h.authConf.AccessLifeTime.Seconds()),
 		"/", "", secure, true)
 	ctx.SetCookie("refresh_token", newRefresh, int(h.authConf.RefreshLifeTime.Seconds()),
-		"/api/v1/auth/refresh", "", secure, true)
+		"/api/v1/auth/", "", secure, true)
 
 	SuccessResponse(ctx, http.StatusOK, dto.AuthRefreshResponse{
 		AccessToken: access,
@@ -192,8 +195,8 @@ func (h *AuthHandler) Refresh(ctx *gin.Context) {
 }
 
 // SignOut godoc
-// @Summary Sign out from current device
-// @Description Revokes current refresh token and clears auth cookies.
+// @Summary Выйти из аккаунта
+// @Description Удаляет текущий токен обновления и удаляет файлы cookie аутентификации.
 // @Tags Auth
 // @Produce json
 // @Security BearerAuth
@@ -218,7 +221,7 @@ func (h *AuthHandler) SignOut(ctx *gin.Context) {
 
 	secure := h.isCookieSecure()
 	ctx.SetCookie("access_token", "", -1, "/", "", secure, true)
-	ctx.SetCookie("refresh_token", "", -1, "/api/v1/auth/refresh", "", secure, true)
+	ctx.SetCookie("refresh_token", "", -1, "/api/v1/auth/", "", secure, true)
 
 	SuccessResponse(ctx, http.StatusOK, dto.MessageResponse{
 		Message: "Successfully signed out",
@@ -226,8 +229,8 @@ func (h *AuthHandler) SignOut(ctx *gin.Context) {
 }
 
 // SignOutAll godoc
-// @Summary Sign out from all devices
-// @Description Revokes all refresh tokens for the authenticated user and clears auth cookies.
+// @Summary Выйти из аккаунта со всех устройств
+// @Description Удаляет все токены обновления и удаляет файлы cookie аутентификации.
 // @Tags Auth
 // @Produce json
 // @Security BearerAuth
@@ -259,7 +262,7 @@ func (h *AuthHandler) SignOutAll(ctx *gin.Context) {
 
 	secure := h.isCookieSecure()
 	ctx.SetCookie("access_token", "", -1, "/", "", secure, true)
-	ctx.SetCookie("refresh_token", "", -1, "/api/v1/auth/refresh", "", secure, true)
+	ctx.SetCookie("refresh_token", "", -1, "/api/v1/auth/", "", secure, true)
 
 	SuccessResponse(ctx, http.StatusOK, dto.MessageResponse{
 		Message: "Successfully signed out from all devices",

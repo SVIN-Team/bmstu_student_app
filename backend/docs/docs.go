@@ -580,7 +580,7 @@ const docTemplate = `{
         },
         "/auth/login": {
             "post": {
-                "description": "Authenticates user credentials and sets auth cookies.",
+                "description": "Проверяет учетные данные пользователя и устанавливает файлы cookie аутентификации.",
                 "consumes": [
                     "application/json"
                 ],
@@ -590,7 +590,7 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Sign in",
+                "summary": "Войти",
                 "parameters": [
                     {
                         "description": "Signin request",
@@ -658,14 +658,14 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Revokes current refresh token and clears auth cookies.",
+                "description": "Удаляет текущий токен обновления и удаляет файлы cookie аутентификации.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Sign out from current device",
+                "summary": "Выйти из аккаунта",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -710,14 +710,14 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Revokes all refresh tokens for the authenticated user and clears auth cookies.",
+                "description": "Удаляет все токены обновления и удаляет файлы cookie аутентификации.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Sign out from all devices",
+                "summary": "Выйти из аккаунта со всех устройств",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -754,14 +754,14 @@ const docTemplate = `{
         },
         "/auth/refresh": {
             "post": {
-                "description": "Refreshes access and refresh tokens using refresh cookie.",
+                "description": "Обновляет токены доступа и обновления с помощью cookie обновления.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Refresh access token",
+                "summary": "Обновить токен через refresh_token",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -798,7 +798,7 @@ const docTemplate = `{
         },
         "/auth/register": {
             "post": {
-                "description": "Creates a new user in an existing group and returns created user payload.",
+                "description": "Создает нового пользователя в существующей группе и возвращает данные о созданном пользователе.",
                 "consumes": [
                     "application/json"
                 ],
@@ -808,7 +808,7 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Register a new user",
+                "summary": "Регистрация нового пользователя",
                 "parameters": [
                     {
                         "description": "Signup request",

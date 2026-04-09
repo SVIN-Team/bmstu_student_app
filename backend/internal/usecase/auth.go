@@ -53,6 +53,9 @@ func (a *AuthUseCase) SignUp(ctx context.Context, user models.User) (accessToken
 	uid, err := a.userRepo.CreateUser(ctx, user)
 	if err != nil {
 		logger.Errorf(ctx, "failed to create user: %v", err)
+		if errors.Is(err, autherrors.ErrUserDuplicate) {
+			return "", "", uuid.Nil, autherrors.ErrUserDuplicate
+		}
 		return "", "", uuid.Nil, autherrors.ErrInternalServer
 	}
 

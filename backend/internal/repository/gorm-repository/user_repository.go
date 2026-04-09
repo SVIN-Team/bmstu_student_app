@@ -2,6 +2,7 @@ package gormrepository
 
 import (
 	"context"
+	"strings"
 
 	autherrors "stud_hub/internal/errors"
 	"stud_hub/internal/models"
@@ -26,6 +27,10 @@ func (r *UserRepository) CreateUser(ctx context.Context, user models.User) (uuid
 
 	if err := r.db.WithContext(ctx).Create(&gUser).Error; err != nil {
 		logger.Errorf(ctx, "gorm: failed to create user %s: %v", user.Email, err)
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "23505)") { // PostgreSQL error code for unique constraint violation :P
+			return uuid.UUID{}, autherrors.ErrUserDuplicate
+		}
 		return uuid.UUID{}, autherrors.ErrInternalServer
 	}
 	return gUser.ID, nil

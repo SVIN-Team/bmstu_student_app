@@ -678,7 +678,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Authenticates user credentials and sets auth cookies.
+      description: Проверяет учетные данные пользователя и устанавливает файлы cookie
+        аутентификации.
       parameters:
       - description: Signin request
         in: body
@@ -714,12 +715,12 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Sign in
+      summary: Войти
       tags:
       - Auth
   /auth/logout:
     post:
-      description: Revokes current refresh token and clears auth cookies.
+      description: Удаляет текущий токен обновления и удаляет файлы cookie аутентификации.
       produces:
       - application/json
       responses:
@@ -743,13 +744,12 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: Sign out from current device
+      summary: Выйти из аккаунта
       tags:
       - Auth
   /auth/logout-all:
     post:
-      description: Revokes all refresh tokens for the authenticated user and clears
-        auth cookies.
+      description: Удаляет все токены обновления и удаляет файлы cookie аутентификации.
       produces:
       - application/json
       responses:
@@ -773,12 +773,12 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: Sign out from all devices
+      summary: Выйти из аккаунта со всех устройств
       tags:
       - Auth
   /auth/refresh:
     post:
-      description: Refreshes access and refresh tokens using refresh cookie.
+      description: Обновляет токены доступа и обновления с помощью cookie обновления.
       produces:
       - application/json
       responses:
@@ -799,15 +799,15 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Refresh access token
+      summary: Обновить токен через refresh_token
       tags:
       - Auth
   /auth/register:
     post:
       consumes:
       - application/json
-      description: Creates a new user in an existing group and returns created user
-        payload.
+      description: Создает нового пользователя в существующей группе и возвращает
+        данные о созданном пользователе.
       parameters:
       - description: Signup request
         in: body
@@ -839,7 +839,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Register a new user
+      summary: Регистрация нового пользователя
       tags:
       - Auth
   /lessons:
