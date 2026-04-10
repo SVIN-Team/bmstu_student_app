@@ -120,7 +120,7 @@ func (m *AuthMiddleware) AuthRequired() gin.HandlerFunc {
 func (m *AuthMiddleware) AuthRequiredWithRole() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// First run the AuthRequired middleware to validate token
-		m.AuthRequired()(c)
+		//m.AuthRequired()(c)
 
 		// If the previous middleware aborted, don't continue
 		if c.IsAborted() {
@@ -181,7 +181,7 @@ func (m *AuthMiddleware) AuthRequiredWithRole() gin.HandlerFunc {
 func (m *AuthMiddleware) AdminRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// First run the AuthRequiredWithRole middleware
-		m.AuthRequiredWithRole()(c)
+		// m.AuthRequiredWithRole()(c)
 
 		// If the previous middleware aborted, don't continue
 		if c.IsAborted() {
@@ -223,7 +223,7 @@ func (m *AuthMiddleware) AdminRequired() gin.HandlerFunc {
 func (m *AuthMiddleware) HeadmanRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// First run the AuthRequiredWithRole middleware
-		m.AuthRequiredWithRole()(c)
+		// m.AuthRequiredWithRole()(c)
 
 		// If the previous middleware aborted, don't continue
 		if c.IsAborted() {
@@ -245,7 +245,7 @@ func (m *AuthMiddleware) HeadmanRequired() gin.HandlerFunc {
 		}
 
 		// Check if user is headman
-		if role != models.RoleHeadman {
+		if role != models.RoleHeadman && role != models.RoleAdmin {
 			c.JSON(http.StatusForbidden, gin.H{
 				"success": false,
 				"error": gin.H{
@@ -265,7 +265,7 @@ func (m *AuthMiddleware) HeadmanRequired() gin.HandlerFunc {
 func (m *AuthMiddleware) RequireRole(requiredRoles ...models.RoleType) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// First run the AuthRequiredWithRole middleware
-		m.AuthRequiredWithRole()(c)
+		// m.AuthRequiredWithRole()(c)
 
 		// If the previous middleware aborted, don't continue
 		if c.IsAborted() {

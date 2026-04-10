@@ -101,7 +101,7 @@ func Run(cfg *config.ApplicationConfig) {
 
 	// Protected routes (require authentication)
 	api := r.Group("/api/v1")
-	api.Use(authMiddleware.AuthRequired())
+	api.Use(authMiddleware.AuthRequired(), authMiddleware.AuthRequiredWithRole())
 	{
 		// Lessons/Schedule
 		lessons := api.Group("/lessons")
@@ -110,28 +110,27 @@ func Run(cfg *config.ApplicationConfig) {
 			lessons.GET("/:id", scheduleHandler.GetLessonByID)
 
 			lessonsAdmin := lessons.Group("")
-			lessonsAdmin.Use(authMiddleware.AdminRequired())
-			lessonsAdmin.POST("/imports", scheduleHandler.ImportSchedule)
+			lessonsAdmin.POST("/imports", authMiddleware.AdminRequired(), scheduleHandler.ImportSchedule)
 		}
 
 		// Queues
 		queues := api.Group("/queues")
 		{
 			queues.GET("", queueHandler.GetQueues)
-			queues.POST("", queueHandler.CreateQueue) // headman only
+			queues.POST("", authMiddleware.HeadmanRequired(), queueHandler.CreateQueue) // headman only
 			queues.GET("/:queue_id", queueHandler.GetQueueByID)
-			queues.PATCH("/:queue_id", queueHandler.UpdateQueue)  // headman only
-			queues.DELETE("/:queue_id", queueHandler.DeleteQueue) // headman only
+			queues.PATCH("/:queue_id", authMiddleware.HeadmanRequired(), queueHandler.UpdateQueue)  // headman only
+			queues.DELETE("/:queue_id", authMiddleware.HeadmanRequired(), queueHandler.DeleteQueue) // headman only
 
 			// Queue slots
 			queues.GET("/:queue_id/slots", queueSlotsHandler.GetQueueSlots)
 			queues.POST("/:queue_id/slots", queueSlotsHandler.SignUpForQueue)
 			queues.GET("/:queue_id/slots/:slot_id", queueSlotsHandler.GetQueueSlot)
-			queues.PATCH("/:queue_id/slots/:slot_id", queueSlotsHandler.UpdateQueueSlot) // headman only
+			queues.PATCH("/:queue_id/slots/:slot_id", authMiddleware.HeadmanRequired(), queueSlotsHandler.UpdateQueueSlot) // headman only
 			queues.DELETE("/:queue_id/slots/:slot_id", queueSlotsHandler.CancelQueueSlot)
 
 			// Slot transfers
-			queues.POST("/:queue_id/transfers", queueSlotsHandler.TransferFailedSlots) // headman only
+			queues.POST("/:queue_id/transfers", authMiddleware.HeadmanRequired(), queueSlotsHandler.TransferFailedSlots) // headman only
 		}
 
 		// User profile
@@ -140,7 +139,7 @@ func Run(cfg *config.ApplicationConfig) {
 			users.GET("/me", userHandler.GetCurrentUser)
 			users.PATCH("/me", userHandler.UpdateCurrentUser)
 			users.GET("/me/slots", userHandler.GetCurrentUserSlots)
-			users.PUT("/me/headman-role", userHandler.TransferHeadmanRole) // headman only
+			users.PUT("/me/headman-role", authMiddleware.HeadmanRequired(), userHandler.TransferHeadmanRole) // headman only
 		}
 
 		// Admin routes

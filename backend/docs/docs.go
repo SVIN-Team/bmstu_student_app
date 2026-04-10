@@ -1869,14 +1869,14 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Returns profile for authenticated user.",
+                "description": "Возвращает профиль текущего пользователя.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Users"
                 ],
-                "summary": "Get current user",
+                "summary": "Получить информацию о себе.",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1919,7 +1919,7 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Updates profile fields for authenticated user.",
+                "description": "Обновляет информацию текущего пользователя. Если поле пропущено, оно не будет обновлено.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1929,7 +1929,7 @@ const docTemplate = `{
                 "tags": [
                     "Users"
                 ],
-                "summary": "Update current user",
+                "summary": "Обновить свою информацию.",
                 "parameters": [
                     {
                         "description": "Update user request",
@@ -1991,7 +1991,7 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Transfers headman role to another user in the same group.",
+                "description": "Передает роль старосты группы другому пользователю в той же группе.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2001,7 +2001,7 @@ const docTemplate = `{
                 "tags": [
                     "Users"
                 ],
-                "summary": "Transfer headman role",
+                "summary": "Передать роль старосты.",
                 "parameters": [
                     {
                         "description": "Transfer headman role request",
@@ -2069,14 +2069,14 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Returns authenticated user's slots with optional filters.",
+                "description": "Возвращает слоты текущего пользователя (с фильтрами).",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Users"
                 ],
-                "summary": "Get current user slots",
+                "summary": "Получить свои слоты записи.",
                 "parameters": [
                     {
                         "type": "string",

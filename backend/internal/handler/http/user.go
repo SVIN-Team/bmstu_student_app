@@ -36,8 +36,8 @@ func NewUserHandler(userUseCase UserUseCase, groupUseCase GroupUseCase) *UserHan
 }
 
 // GetCurrentUser godoc
-// @Summary Get current user
-// @Description Returns profile for authenticated user.
+// @Summary Получить информацию о себе.
+// @Description Возвращает профиль текущего пользователя.
 // @Tags Users
 // @Produce json
 // @Security BearerAuth
@@ -64,8 +64,8 @@ func (h *UserHandler) GetCurrentUser(ctx *gin.Context) {
 }
 
 // UpdateCurrentUser godoc
-// @Summary Update current user
-// @Description Updates profile fields for authenticated user.
+// @Summary Обновить свою информацию.
+// @Description Обновляет информацию текущего пользователя. Если поле пропущено, оно не будет обновлено.
 // @Tags Users
 // @Accept json
 // @Produce json
@@ -121,8 +121,8 @@ func (h *UserHandler) UpdateCurrentUser(ctx *gin.Context) {
 }
 
 // GetCurrentUserSlots godoc
-// @Summary Get current user slots
-// @Description Returns authenticated user's slots with optional filters.
+// @Summary Получить свои слоты записи.
+// @Description Возвращает слоты текущего пользователя (с фильтрами).
 // @Tags Users
 // @Produce json
 // @Security BearerAuth
@@ -162,8 +162,8 @@ func (h *UserHandler) GetCurrentUserSlots(ctx *gin.Context) {
 }
 
 // TransferHeadmanRole godoc
-// @Summary Transfer headman role
-// @Description Transfers headman role to another user in the same group.
+// @Summary Передать роль старосты.
+// @Description Передает роль старосты группы другому пользователю в той же группе.
 // @Tags Users
 // @Accept json
 // @Produce json

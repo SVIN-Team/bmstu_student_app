@@ -1460,7 +1460,7 @@ paths:
       - Queue Slots
   /users/me:
     get:
-      description: Returns profile for authenticated user.
+      description: Возвращает профиль текущего пользователя.
       produces:
       - application/json
       responses:
@@ -1484,13 +1484,14 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: Get current user
+      summary: Получить информацию о себе.
       tags:
       - Users
     patch:
       consumes:
       - application/json
-      description: Updates profile fields for authenticated user.
+      description: Обновляет информацию текущего пользователя. Если поле пропущено,
+        оно не будет обновлено.
       parameters:
       - description: Update user request
         in: body
@@ -1525,14 +1526,14 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: Update current user
+      summary: Обновить свою информацию.
       tags:
       - Users
   /users/me/headman-role:
     put:
       consumes:
       - application/json
-      description: Transfers headman role to another user in the same group.
+      description: Передает роль старосты группы другому пользователю в той же группе.
       parameters:
       - description: Transfer headman role request
         in: body
@@ -1571,12 +1572,12 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: Transfer headman role
+      summary: Передать роль старосты.
       tags:
       - Users
   /users/me/slots:
     get:
-      description: Returns authenticated user's slots with optional filters.
+      description: Возвращает слоты текущего пользователя (с фильтрами).
       parameters:
       - description: Slot status filter
         in: query
@@ -1607,7 +1608,7 @@ paths:
       security:
       - BearerAuth: []
       - CookieAuth: []
-      summary: Get current user slots
+      summary: Получить свои слоты записи.
       tags:
       - Users
 schemes:
