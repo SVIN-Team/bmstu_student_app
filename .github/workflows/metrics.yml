@@ -50,8 +50,8 @@ jobs:
       - name: Save metrics to artifact
         if: always()
         run: |
-          curl -s http://localhost:9091/metrics || echo "No metrics" > metrics.txt
-          cat metrics.txt
+          curl -s http://localhost:9091/metrics > metrics.txt 2>&1 || echo "No metrics" > metrics.txt
+          cat metrics.txt | grep -E "lead_time|github" || echo "No lead time metrics"
       
       - name: Upload metrics artifact
         if: always()
