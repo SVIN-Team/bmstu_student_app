@@ -38,7 +38,7 @@ jobs:
       
       - name: Run metrics collection
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           cd git-metrics-dashboard
           docker run --rm \
