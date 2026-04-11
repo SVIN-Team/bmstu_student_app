@@ -1,9 +1,11 @@
 name: Lead Time Metrics Collection
 
 on:
+  push:
+    branches: [ main, develop ]
   schedule:
-    - cron: '0 */6 * * *'  # каждые 6 часов
-  workflow_dispatch:  # ручной запуск
+    - cron: '0 */6 * * *'  
+  workflow_dispatch:  
 
 jobs:
   collect-metrics:
