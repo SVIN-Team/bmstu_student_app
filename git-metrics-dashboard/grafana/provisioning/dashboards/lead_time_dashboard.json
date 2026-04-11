@@ -1,0 +1,235 @@
+{
+  "title": "Lead Time Dashboard - BMSTU Student App",
+  "description": "Анализ времени нахождения задач в статусах",
+  "time": {
+    "from": "now-6M",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "panels": [
+{
+  "id": 1,
+  "title": "Lead Time by Status",
+  "type": "barchart",
+  "gridPos": {"x": 0, "y": 0, "w": 24, "h": 16},
+  "targets": [
+    {
+      "expr": "lead_time_status_days{status=\"backlog\"}",
+      "format": "table",
+      "instant": true,
+      "legendFormat": "backlog"
+    },
+    {
+      "expr": "lead_time_status_days{status=\"in_progress\"}",
+      "format": "table",
+      "instant": true,
+      "legendFormat": "in_progress"
+    },
+    {
+      "expr": "lead_time_status_days{status=\"in_review\"}",
+      "format": "table",
+      "instant": true,
+      "legendFormat": "in_review"
+    },
+    {
+      "expr": "lead_time_status_days{status=\"checking\"}",
+      "format": "table",
+      "instant": true,
+      "legendFormat": "checking"
+    },
+    {
+      "expr": "lead_time_status_days{status=\"done\"}",
+      "format": "table",
+      "instant": true,
+      "legendFormat": "done"
+    },
+    {
+      "expr": "lead_time_status_days{status=\"ready\"}",
+      "format": "table",
+      "instant": true,
+      "legendFormat": "ready"
+    }
+  ],
+  "transformations": [
+    {
+      "id": "merge",
+      "options": {}
+    },
+    {
+      "id": "groupBy",
+      "options": {
+        "fields": {
+          "month": {"aggregations": ["group"]},
+          "Value": {"aggregations": ["sum"]}
+        },
+        "groupBy": ["status"]
+      }
+    },
+    {
+      "id": "organize",
+      "options": {
+        "excludeByName": {
+          "Time": true,
+          "__name__": true,
+          "job": true,
+          "status": true
+        },
+        "indexByName": {
+          "month": 0,
+          "Value #A": 1,
+          "Value #B": 2,
+          "Value #C": 3,
+          "Value #D": 4,
+          "Value #E": 5,
+          "Value #F": 6
+        },
+        "renameByName": {
+          "month": "Месяц",
+          "Value #A": "Бэклог",
+          "Value #B": "В работе",
+          "Value #C": "Ревью",
+          "Value #D": "На проверке",
+          "Value #E": "Готово",
+          "Value #F": "Готово к работе"
+        }
+      }
+    }
+  ],
+  "options": {
+    "orientation": "horizontal",
+    "stacking": "normal",
+    "groupWidth": 0.7,
+    "showValue": "auto"
+  },
+  "fieldConfig": {
+    "defaults": {
+      "unit": "d",
+      "decimals": 1
+    }
+  }
+},
+    {
+      "id": 2,
+      "title": "Lead Time Trend (по месяцам)",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+      "targets": [
+        {
+          "expr": "lead_time_status_days{status=\"in_progress\"}",
+          "legendFormat": "В работе"
+        },
+        {
+          "expr": "lead_time_status_days{status=\"in_review\"}",
+          "legendFormat": "Ревью"
+        },
+        {
+          "expr": "lead_time_status_days{status=\"checking\"}",
+          "legendFormat": "На проверке"
+        },
+        {
+          "expr": "lead_time_status_days{status=\"done\"}",
+          "legendFormat": "Готово"
+        }
+      ],
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "last"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "d",
+          "decimals": 1
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Средний Lead Time по статусам (всего)",
+      "type": "barchart",
+      "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+      "targets": [
+        {
+          "expr": "avg(lead_time_status_days{status=\"backlog\"})",
+          "legendFormat": "Бэклог"
+        },
+        {
+          "expr": "avg(lead_time_status_days{status=\"ready\"})",
+          "legendFormat": "Готово к работе"
+        },
+        {
+          "expr": "avg(lead_time_status_days{status=\"in_progress\"})",
+          "legendFormat": "В работе"
+        },
+        {
+          "expr": "avg(lead_time_status_days{status=\"in_review\"})",
+          "legendFormat": "Ревью"
+        },
+        {
+          "expr": "avg(lead_time_status_days{status=\"checking\"})",
+          "legendFormat": "На проверке"
+        },
+        {
+          "expr": "avg(lead_time_status_days{status=\"done\"})",
+          "legendFormat": "Готово"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "stacking": "normal"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "d",
+          "decimals": 1
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Общий Lead Time по месяцам",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 24, "w": 12, "h": 6},
+      "targets": [
+        {
+          "expr": "total_lead_time_days",
+          "legendFormat": "Общее время (дни)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "d",
+          "decimals": 1
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Количество завершенных элементов",
+      "type": "stat",
+      "gridPos": {"x": 12, "y": 24, "w": 6, "h": 6},
+      "targets": [
+        {
+          "expr": "completed_items_count"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        }
+      }
+    }
+  ],
+  "refresh": "1h"
+}
