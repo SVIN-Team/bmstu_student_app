@@ -76,9 +76,10 @@ CREATE TABLE subjects (
 
 CREATE TABLE teachers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    patronymic VARCHAR(100)
+    first_name VARCHAR(100) NOT NULL,
+    patronymic VARCHAR(100) NOT NULL,
+    UNIQUE (last_name, first_name, patronymic)
 );
 
 CREATE TABLE rooms (
@@ -90,7 +91,7 @@ CREATE TABLE lessons (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     group_id UUID NOT NULL,
     subject_id UUID NOT NULL,
-    teacher_id UUID NOT NULL,
+    teacher_id UUID,
     room_id UUID,
     type lesson_type NOT NULL,
     starts_at TIMESTAMP NOT NULL,
@@ -109,7 +110,7 @@ CREATE TABLE lessons (
     CONSTRAINT fk_lessons_teacher
         FOREIGN KEY (teacher_id)
         REFERENCES teachers(id)
-        ON DELETE RESTRICT,
+        ON DELETE SET NULL,
 
     CONSTRAINT fk_lessons_room
         FOREIGN KEY (room_id)
