@@ -111,6 +111,12 @@ func (h *QueueSlotsHandler) GetQueueSlot(ctx *gin.Context) {
         return
     }
 
+    if slot.QueueID.String() != ctx.Param("queue_id") {
+        NotFoundError(ctx, "Slot not found in this queue")
+        logger.Warnf(ctx, "Slot %s does not belong to queue %s", slot.ID, ctx.Param("queue_id"))
+        return
+    }
+
     SuccessResponse(ctx, http.StatusOK, h.slotToDTO(slot, true))
 }
 
@@ -220,7 +226,6 @@ func (h *QueueSlotsHandler) UpdateQueueSlot(ctx *gin.Context) {
 // @Security BearerAuth
 // @Security CookieAuth
 // @Param queue_id path string true "Queue ID"
-// @Param slot_id path string true "Slot ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 404 {object} dto.ErrorResponse

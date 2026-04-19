@@ -49,6 +49,8 @@ definitions:
         type: integer
       opens_at:
         type: string
+      transfer_failed_from:
+        type: string
     required:
     - lesson_id
     - opens_at
@@ -1044,12 +1046,17 @@ paths:
       produces:
       - application/json
       responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QueueResponse'
+              type: object
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "501":
-          description: Not Implemented
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
@@ -1273,11 +1280,6 @@ paths:
       - description: Queue ID
         in: path
         name: queue_id
-        required: true
-        type: string
-      - description: Slot ID
-        in: path
-        name: slot_id
         required: true
         type: string
       produces:

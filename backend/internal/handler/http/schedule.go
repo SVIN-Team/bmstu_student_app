@@ -6,13 +6,14 @@ import (
     "errors"
     "fmt"
     "io"
-    `mime/multipart`
+    "mime/multipart"
     "net/http"
     "strings"
     "time"
 
     errors2 "stud_hub/internal/errors"
     "stud_hub/internal/handler/http/dto"
+    `stud_hub/internal/handler/middleware`
     "stud_hub/internal/models"
     "stud_hub/internal/usecase"
     "stud_hub/util/logger"
@@ -31,11 +32,13 @@ type ScheduleUseCase interface {
 
 type ScheduleHandler struct {
     scheduleUseCase ScheduleUseCase
+    userUseCase     UserUseCase
 }
 
-func NewScheduleHandler(scheduleUseCase ScheduleUseCase) *ScheduleHandler {
+func NewScheduleHandler(scheduleUseCase ScheduleUseCase, userUseCase UserUseCase) *ScheduleHandler {
     return &ScheduleHandler{
         scheduleUseCase: scheduleUseCase,
+        userUseCase:     userUseCase,
     }
 }
 
@@ -65,15 +68,27 @@ func (h *ScheduleHandler) GetLessons(ctx *gin.Context) {
         return
     }
 
-    // If no group_id provided, use the user's group (IT DOESNT WORK STOOPID)
+    userIdString := ctx.MustGet(middleware.UserIDContextKey)
+    userId, ok := userIdString.(uuid.UUID)
+    if !ok {
+        InternalError(ctx, "Invalid user ID in context")
+        logger.Errorf(ctx, "Invalid user ID in context: %v", userIdString)
+        return
+    }
+
+    // If no group_id provided, use the user's group
     var groupID uuid.UUID
     if groupIDStr == "" {
-        userGroupID, exists := ctx.Get("user_group_id")
-        if !exists {
-            ValidationError(ctx, "group_id is required")
+        user, err := h.userUseCase.GetUserByID(ctx, userId)
+        if errors.Is(err, errors2.ErrUserNotFound) {
+            NotFoundError(ctx, "User not found")
+            return
+        } else if err != nil {
+            InternalError(ctx, fmt.Sprintf("Failed to get user: %v", err))
+            logger.Errorf(ctx, "Failed to get user: %v", err)
             return
         }
-        groupID = userGroupID.(uuid.UUID)
+        groupID = user.GroupID
     } else {
         var err error
         groupID, err = uuid.Parse(groupIDStr)

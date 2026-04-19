@@ -169,6 +169,7 @@ func (q *QueueUseCase) Create(ctx context.Context, params models.CreateQueuePara
         OpensAt:         params.OpensAt,
         Status:          models.QueueStatusDraft,
         MaxSize:         params.MaxSize,
+        ClosesAt:        params.ClosesAt,
     }
 
     id, err := q.queueRepo.Create(ctx, queue)

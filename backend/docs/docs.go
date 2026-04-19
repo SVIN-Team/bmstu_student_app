@@ -1185,14 +1185,26 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "400": {
-                        "description": "Bad Request",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.QueueResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
-                    "501": {
-                        "description": "Not Implemented",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -1642,13 +1654,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Queue ID",
                         "name": "queue_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Slot ID",
-                        "name": "slot_id",
                         "in": "path",
                         "required": true
                     }
@@ -2188,8 +2193,8 @@ const docTemplate = `{
         "dto.CreateQueueRequest": {
             "type": "object",
             "required": [
-                "opens_at",
-                "subject_id"
+                "lesson_id",
+                "opens_at"
             ],
             "properties": {
                 "closes_at": {
@@ -2204,7 +2209,7 @@ const docTemplate = `{
                 "opens_at": {
                     "type": "string"
                 },
-                "subject_id": {
+                "transfer_failed_from": {
                     "type": "string"
                 }
             }
