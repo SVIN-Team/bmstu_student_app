@@ -63,9 +63,20 @@ func NewQueueHandler(queueUseCase QueueUseCase, groupUseCase GroupUseCase,
 func (h *QueueHandler) GetQueues(ctx *gin.Context) {
     groupIDStr := ctx.Query("group_id")
     status := ctx.Query("status")
-    page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-    perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "20"))
+    pageStr := ctx.DefaultQuery("page", "1")
+    perPageStr := ctx.DefaultQuery("per_page", "20")
 
+    page, err := strconv.Atoi(pageStr)
+    if err != nil || page < 1 {
+        ValidationError(ctx, "Invalid page: must be a positive integer")
+        return
+    }
+
+    perPage, err := strconv.Atoi(perPageStr)
+    if err != nil || perPage < 1 {
+        ValidationError(ctx, "Invalid per_page: must be a positive integer")
+        return
+    }
     if perPage > 100 {
         perPage = 100
     }
