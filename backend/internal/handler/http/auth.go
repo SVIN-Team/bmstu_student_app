@@ -132,12 +132,8 @@ func (h *AuthHandler) SignIn(ctx *gin.Context) {
 	}
 
 	access, refresh, userId, err := h.authUseCase.SignIn(ctx, json.ToModel())
-	if errors.Is(err, errors2.ErrUserNotFound) {
-		NotFoundError(ctx, fmt.Sprintf("user %s not found", json.ToModel().Email))
-		logger.Infof(ctx, "Failed to sign in: %v", err)
-		return
-	} else if errors.Is(err, errors2.ErrInvalidCredentials) {
-		UnauthorizedError(ctx, fmt.Sprintf("invalid credentials: %v", err))
+	if errors.Is(err, errors2.ErrUserNotFound) || errors.Is(err, errors2.ErrInvalidCredentials) {
+		UnauthorizedError(ctx, "invalid credentials")
 		logger.Infof(ctx, "Failed to sign in: %v", err)
 		return
 	} else if err != nil {
