@@ -130,7 +130,7 @@ func Run(cfg *config.ApplicationConfig) {
             queues.POST("/:queue_id/slots", queueSlotsHandler.SignUpForQueue)
             queues.GET("/:queue_id/slots/:slot_id", queueSlotsHandler.GetQueueSlot)
             queues.PATCH("/:queue_id/slots/:slot_id", authMiddleware.HeadmanRequired(), queueSlotsHandler.UpdateQueueSlot) // headman only
-            queues.DELETE("/:queue_id/slots/:slot_id", queueSlotsHandler.CancelQueueSlot)
+            queues.DELETE("/:queue_id/slots/me", queueSlotsHandler.CancelQueueSlot)
 
             // Slot transfers
             queues.POST("/:queue_id/transfers", authMiddleware.HeadmanRequired(), queueSlotsHandler.TransferFailedSlots) // headman only

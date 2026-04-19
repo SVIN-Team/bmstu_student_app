@@ -68,7 +68,7 @@ func (h *ScheduleHandler) GetLessons(ctx *gin.Context) {
         return
     }
 
-    userIdString := ctx.MustGet(middleware.UserIDContextKey)
+    userIdString := ctx.MustGet(string(middleware.UserIDContextKey))
     userId, ok := userIdString.(uuid.UUID)
     if !ok {
         InternalError(ctx, "Invalid user ID in context")
@@ -246,7 +246,7 @@ func (h *ScheduleHandler) ImportSchedule(ctx *gin.Context) {
         }
 
         row := models.ScheduleImportRow{
-            GroupName:         req.GroupName, // Note: This should be group name, but API expects group_id
+            GroupName:         req.GroupName,
             SubjectName:       lessonReq.SubjectName,
             TeacherLastName:   lastName,
             TeacherFirstName:  firstName,
