@@ -17,6 +17,8 @@ import (
     "stud_hub/internal/usecase"
     "stud_hub/util/logger"
 
+    "github.com/gin-gonic/gin/binding"
+
     "github.com/gin-gonic/gin"
     "github.com/google/uuid"
 )
@@ -206,8 +208,8 @@ func (h *ScheduleHandler) ImportSchedule(ctx *gin.Context) {
         return
     }
 
-    // Validate
-    if err := ctx.ShouldBind(&req); err != nil {
+    // Validate parsed payload directly to avoid re-reading/binding the request body.
+    if err := binding.Validator.ValidateStruct(&req); err != nil {
         ValidationError(ctx, fmt.Sprintf("Validation error: %v", err))
         return
     }

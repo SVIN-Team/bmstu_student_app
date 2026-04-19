@@ -32,13 +32,16 @@ type QueueHandler struct {
     queueUseCase   QueueUseCase
     groupUseCase   GroupUseCase
     subjectUseCase SubjectUseCase
+    userUseCase    UserUseCase
 }
 
-func NewQueueHandler(queueUseCase QueueUseCase, groupUseCase GroupUseCase, subjectUseCase SubjectUseCase) *QueueHandler {
+func NewQueueHandler(queueUseCase QueueUseCase, groupUseCase GroupUseCase,
+    subjectUseCase SubjectUseCase, userUseCase UserUseCase) *QueueHandler {
     return &QueueHandler{
         queueUseCase:   queueUseCase,
         groupUseCase:   groupUseCase,
         subjectUseCase: subjectUseCase,
+        userUseCase:    userUseCase,
     }
 }
 
@@ -67,15 +70,18 @@ func (h *QueueHandler) GetQueues(ctx *gin.Context) {
         perPage = 100
     }
 
+    userId := ctx.MustGet("user_id").(uuid.UUID)
+
     // If no group_id provided, use the user's group
     var groupID uuid.UUID
     if groupIDStr == "" {
-        userGroupID, exists := ctx.Get("user_group_id")
-        if !exists {
-            ValidationError(ctx, "group_id is required")
+        user, err := h.userUseCase.GetUserByID(ctx, userId)
+        if err != nil {
+            InternalError(ctx, fmt.Sprintf("Failed to get user group info when group_id is not specified explicitly: %v", err))
+            logger.Errorf(ctx, "Failed to get user group info when group_id is not specified explicitly: %v", err)
             return
         }
-        groupID = userGroupID.(uuid.UUID)
+        groupID = user.GroupID
     } else {
         var err error
         groupID, err = uuid.Parse(groupIDStr)

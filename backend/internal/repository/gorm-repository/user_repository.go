@@ -2,7 +2,7 @@ package gormrepository
 
 import (
     "context"
-    "strings"
+    "errors"
 
     autherrors "stud_hub/internal/errors"
     "stud_hub/internal/models"
@@ -10,6 +10,7 @@ import (
     "stud_hub/util/logger"
 
     "github.com/google/uuid"
+    "github.com/jackc/pgconn"
     "gorm.io/gorm"
 )
 
@@ -23,7 +24,16 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 }
 
 func isUniqueViolationFault(err error) bool {
-    return strings.Contains(err.Error(), "23505)") // PostgreSQL error code for unique constraint violation :P
+    if err == nil {
+        return false
+    }
+
+    var pgErr *pgconn.PgError
+    if errors.As(err, &pgErr) {
+        return pgErr.Code == "23505" // PostgreSQL error code for unique constraint violation.
+    }
+
+    return false
 }
 
 func (r *UserRepository) CreateUser(ctx context.Context, user models.User) (uuid.UUID, error) {
