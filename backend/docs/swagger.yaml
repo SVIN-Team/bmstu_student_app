@@ -49,11 +49,9 @@ definitions:
         type: integer
       opens_at:
         type: string
-      subject_id:
-        type: string
     required:
+    - lesson_id
     - opens_at
-    - subject_id
     type: object
   dto.ErrorDetail:
     properties:
