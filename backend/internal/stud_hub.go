@@ -65,7 +65,7 @@ func Run(cfg *config.ApplicationConfig) {
     // Initialize handlers
     authHandler := http2.NewAuthHandler(authUseCase, groupUseCase, &cfg.AuthConfig)
     scheduleHandler := http2.NewScheduleHandler(scheduleUseCase)
-    queueHandler := http2.NewQueueHandler(queueUseCase, groupUseCase, subjectUseCase)
+    queueHandler := http2.NewQueueHandler(queueUseCase, groupUseCase, subjectUseCase, userUseCase)
     queueSlotsHandler := http2.NewQueueSlotsHandler(queueUseCase, queueUseCase)
     userHandler := http2.NewUserHandler(userUseCase, groupUseCase)
     adminHandler := http2.NewAdminHandler(adminUseCase, groupUseCase)
