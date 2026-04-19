@@ -214,7 +214,15 @@ func (h *QueueSlotsHandler) UpdateQueueSlot(ctx *gin.Context) {
     }
 
     // Get updated slot
-    slot, _ := h.queueSlotsUseCase.GetSlotByID(ctx, slotID)
+    slot, err := h.queueSlotsUseCase.GetSlotByID(ctx, slotID)
+    if errors.Is(err, errors2.ErrSlotNotFound) {
+        NotFoundError(ctx, "Slot not found")
+        return
+    } else if err != nil {
+        InternalError(ctx, fmt.Sprintf("Failed to fetch updated slot: %v", err))
+        logger.Errorf(ctx, "Failed to fetch updated slot: %v", err)
+        return
+    }
     SuccessResponse(ctx, http.StatusOK, h.slotToDTO(slot, true))
 }
 
