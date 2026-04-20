@@ -1274,41 +1274,6 @@ paths:
       tags:
       - Queue Slots
   /queues/{queue_id}/slots/{slot_id}:
-    delete:
-      description: Cancels authenticated user's queue sign-up.
-      parameters:
-      - description: Queue ID
-        in: path
-        name: queue_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      security:
-      - BearerAuth: []
-      - CookieAuth: []
-      summary: Cancel queue slot
-      tags:
-      - Queue Slots
     get:
       description: Returns slot details by slot ID.
       parameters:
@@ -1405,6 +1370,42 @@ paths:
       - BearerAuth: []
       - CookieAuth: []
       summary: Update queue slot
+      tags:
+      - Queue Slots
+  /queues/{queue_id}/slots/me:
+    delete:
+      description: Cancels authenticated user's queue sign-up.
+      parameters:
+      - description: Queue ID
+        in: path
+        name: queue_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CookieAuth: []
+      summary: Cancel queue slot
       tags:
       - Queue Slots
   /queues/{queue_id}/transfers:

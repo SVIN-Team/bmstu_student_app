@@ -266,16 +266,16 @@
 
 **Таблица `lessons`:**
 
-| Поле | Тип | Описание |
-|------|-----|----------|
-| `id` | UUID | Первичный ключ |
-| `group_id` | UUID | FK на groups, NOT NULL |
-| `subject_id` | UUID | FK на subjects, NOT NULL |
-| `teacher_id` | UUID | FK на teachers, NOT NULL |
+| Поле | Тип            | Описание |
+|------|----------------|----------|
+| `id` | UUID           | Первичный ключ |
+| `group_id` | UUID           | FK на groups, NOT NULL |
+| `subject_id` | UUID           | FK на subjects, NOT NULL |
+| `teacher_id` | UUID, nullable | FK на teachers |
 | `room_id` | UUID, nullable | FK на rooms |
-| `type` | ENUM | `lecture`, `lab`, `seminar` |
-| `starts_at` | TIMESTAMP | Время начала (конкретная дата) |
-| `ends_at` | TIMESTAMP | Время окончания |
+| `type` | ENUM           | `lecture`, `lab`, `seminar` |
+| `starts_at` | TIMESTAMP      | Время начала (конкретная дата) |
+| `ends_at` | TIMESTAMP      | Время окончания |
 
 > **Примечание:** Хранятся конкретные занятия на весь семестр. При импорте администратор загружает полный список занятий с датами.
 
