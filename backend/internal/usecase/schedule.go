@@ -276,24 +276,44 @@ func (s *ScheduleUseCase) processImportRow(ctx context.Context, row models.Sched
 		return models.Lesson{}, fmt.Errorf("line %d: subject error: %v", row.LineNum, err)
 	}
 
-	// Преподаватель создаётся или находится автоматически
-	teacherID, err := s.teacherRepo.GetOrCreateByFullName(ctx, row.TeacherLastName, row.TeacherFirstName, row.TeacherPatronymic)
-	if err != nil {
-		return models.Lesson{}, fmt.Errorf("line %d: teacher error: %v", row.LineNum, err)
+	var teacherID *uuid.UUID
+	if row.TeacherLastName != "" && row.TeacherFirstName != "" && row.TeacherPatronymic != "" {
+		id, err := s.teacherRepo.GetOrCreateByFullName(ctx, row.TeacherLastName, row.TeacherFirstName, row.TeacherPatronymic)
+		if err != nil {
+			return models.Lesson{}, fmt.Errorf("line %d: teacher error: %v", row.LineNum, err)
+		}
+		teacherID = &id
 	}
 
-	// Аудитория создаётся или находится автоматически
-	roomID, err := s.classroomRepo.GetOrCreateByName(ctx, row.RoomName)
-	if err != nil {
-		return models.Lesson{}, fmt.Errorf("line %d: classroom error: %v", row.LineNum, err)
+	var roomID *uuid.UUID
+	if row.RoomName != "" {
+		id, err := s.classroomRepo.GetOrCreateByName(ctx, row.RoomName)
+		if err != nil {
+			return models.Lesson{}, fmt.Errorf("line %d: classroom error: %v", row.LineNum, err)
+		}
+		roomID = &id
+	}
+
+	var teacherIDVal uuid.UUID
+	if teacherID != nil {
+		teacherIDVal = *teacherID
+	} else {
+		teacherIDVal = uuid.Nil
+	}
+
+	var roomIDVal uuid.UUID
+	if roomID != nil {
+		roomIDVal = *roomID
+	} else {
+		roomIDVal = uuid.Nil
 	}
 
 	return models.Lesson{
 		ID:         uuid.New(),
 		GroupID:    group.ID,
 		SubjectID:  subjectID,
-		TeacherID:  teacherID,
-		RoomID:     roomID,
+		TeacherID:  teacherIDVal,
+		RoomID:     roomIDVal,
 		LessonType: row.LessonType,
 		StartsAt:   row.StartsAt,
 		EndsAt:     row.EndsAt,
@@ -315,12 +335,16 @@ func (s *ScheduleUseCase) validateLesson(ctx context.Context, lesson models.Less
 		return apperrors.ErrSubjectNotFound
 	}
 
-	if _, err := s.teacherRepo.GetByID(ctx, lesson.TeacherID); err != nil {
-		return apperrors.ErrTeacherNotFound
+	if lesson.TeacherID != uuid.Nil {
+		if _, err := s.teacherRepo.GetByID(ctx, lesson.TeacherID); err != nil {
+			return apperrors.ErrTeacherNotFound
+		}
 	}
 
-	if _, err := s.classroomRepo.GetByID(ctx, lesson.RoomID); err != nil {
-		return apperrors.ErrClassroomNotFound
+	if lesson.RoomID != uuid.Nil {
+		if _, err := s.classroomRepo.GetByID(ctx, lesson.RoomID); err != nil {
+			return apperrors.ErrClassroomNotFound
+		}
 	}
 
 	return nil

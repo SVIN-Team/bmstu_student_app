@@ -52,3 +52,8 @@ var (
 	ErrTeacherNotFound   = errors.New("teacher not found")
 	ErrClassroomNotFound = errors.New("classroom not found")
 )
+
+var (
+	ErrUniqueViolationFault = errors.New("unique violation fault")
+	ErrUserDuplicate        = errors.New("user with this email already exists")
+)

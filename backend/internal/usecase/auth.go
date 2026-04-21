@@ -22,7 +22,7 @@ type TokenRepository interface {
 }
 
 type UserRepository interface {
-	UserReader
+	GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
 	CreateUser(ctx context.Context, user models.User) (uuid.UUID, error)
 	UpdateUser(ctx context.Context, user models.User) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
@@ -42,51 +42,58 @@ func NewAuthUseCase(tokenRepo TokenRepository, userRepo UserRepository, cfg conf
 	}
 }
 
-func (a *AuthUseCase) SignUp(ctx context.Context, user models.User) (accessToken string, refreshToken string, err error) {
+func (a *AuthUseCase) SignUp(ctx context.Context, user models.User) (accessToken string, refreshToken string, userId uuid.UUID, err error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
 	if err != nil {
 		logger.Errorf(ctx, "failed to hash password: %v", err)
-		return "", "", autherrors.ErrInternalServer
+		return "", "", uuid.Nil, autherrors.ErrInternalServer
 	}
 	user.PasswordHash = string(hashedPassword)
 
 	uid, err := a.userRepo.CreateUser(ctx, user)
 	if err != nil {
 		logger.Errorf(ctx, "failed to create user: %v", err)
-		return "", "", autherrors.ErrInternalServer
+		if errors.Is(err, autherrors.ErrUserDuplicate) {
+			return "", "", uuid.Nil, autherrors.ErrUserDuplicate
+		}
+		return "", "", uuid.Nil, autherrors.ErrInternalServer
 	}
 
 	accessToken, refreshToken, err = a.createTokenPair(ctx, uid)
 	if err != nil {
-		return "", "", err
+		return "", "", uuid.Nil, err
 	}
-	return accessToken, refreshToken, nil
+	return accessToken, refreshToken, uid, nil
 }
 
-func (a *AuthUseCase) SignIn(ctx context.Context, user models.User) (accessToken string, refreshToken string, err error) {
+func (a *AuthUseCase) SignIn(ctx context.Context, user models.User) (accessToken string, refreshToken string, userId uuid.UUID, err error) {
 	userData, err := a.userRepo.GetUserByEmail(ctx, user.Email)
 	if err != nil {
-		logger.Warnf(ctx, "failed to get user by email %s: %v", user.Email, err)
-		return "", "", autherrors.ErrInvalidCredentials
+		if errors.Is(err, autherrors.ErrUserNotFound) {
+			logger.Warnf(ctx, "user not found: %s", user.Email)
+			return "", "", uuid.Nil, autherrors.ErrUserNotFound
+		}
+		logger.Errorf(ctx, "failed to get user by email %s: %v", user.Email, err)
+		return "", "", uuid.Nil, autherrors.ErrInternalServer
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(userData.PasswordHash), []byte(user.PasswordHash))
 	if err != nil {
 		logger.Warnf(ctx, "invalid password for user %s", user.Email)
-		return "", "", autherrors.ErrInvalidCredentials
+		return "", "", uuid.Nil, autherrors.ErrInvalidCredentials
 	}
 
 	err = a.tokenRepo.DeleteUserRefreshTokens(ctx, userData.ID)
 	if err != nil {
 		logger.Errorf(ctx, "failed to delete old user refresh tokens for user %s: %v", userData.ID, err)
-		return "", "", autherrors.ErrInternalServer
+		return "", "", uuid.Nil, autherrors.ErrInternalServer
 	}
 
 	accessToken, refreshToken, err = a.createTokenPair(ctx, userData.ID)
 	if err != nil {
-		return "", "", err
+		return "", "", uuid.Nil, err
 	}
-	return accessToken, refreshToken, nil
+	return accessToken, refreshToken, userData.ID, nil
 }
 
 func (a *AuthUseCase) Refresh(ctx context.Context, refreshTokenString string) (accessToken string, newRefreshToken string, err error) {

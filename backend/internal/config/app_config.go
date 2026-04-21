@@ -9,10 +9,12 @@ import (
 )
 
 type ApplicationConfig struct {
-	LoggerConfig LoggerConfig `yaml:"logger"`
-	AuthConfig   AuthConfig   `yaml:"auth"`
+	LoggerConfig     LoggerConfig     `yaml:"logger"`
+	AuthConfig       AuthConfig       `yaml:"auth"`
 	RepositoryConfig RepositoryConfig `yaml:"repository"`
-	TestMode bool `yaml:"test_mode"`
+	RoutingConfig    RoutingConfig    `yaml:"routing"`
+	TestMode         bool             `yaml:"test_mode"`
+	EnableSwagger    bool             `yaml:"enable_swagger"`
 }
 
 func LoadApplicationConfig(path string) (*ApplicationConfig, error) {
