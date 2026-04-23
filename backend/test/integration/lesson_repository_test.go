@@ -81,7 +81,7 @@ func TestLessonRepository_GetByID(t *testing.T) {
         ID:        uuid.New(),
         GroupID:   group.ID,
         SubjectID: subject.ID,
-        TeacherID: teacher.ID,
+        TeacherID: &teacher.ID, 
         Type:      gormmodels.LessonTypeLecture,
         StartsAt:  startsAt,
         EndsAt:    endsAt,
@@ -94,7 +94,7 @@ func TestLessonRepository_GetByID(t *testing.T) {
     assert.Equal(t, testLesson.ID, lesson.ID)
     assert.Equal(t, testLesson.GroupID, lesson.GroupID)
     assert.Equal(t, testLesson.SubjectID, lesson.SubjectID)
-    assert.Equal(t, testLesson.TeacherID, lesson.TeacherID)
+    assert.Equal(t, *testLesson.TeacherID, lesson.TeacherID)
 }
 
 func TestLessonRepository_GetByID_NotFound(t *testing.T) {
