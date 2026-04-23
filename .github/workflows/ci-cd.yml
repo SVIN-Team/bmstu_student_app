@@ -125,6 +125,9 @@ jobs:
     needs: build-and-test
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Download binary artifact
         uses: actions/download-artifact@v4
         with:
@@ -134,12 +137,12 @@ jobs:
       - name: Make binary executable
         run: chmod +x ./artifact/bmstu_app
       
-      - name: Stop application before update
+      - name: Stop application
         run: |
           sudo systemctl stop bmstu_app || true
           sleep 2
       
-      - name: Copy binary to VM
+      - name: Copy binary and config
         run: |
           cp ./artifact/bmstu_app /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app_new
           mv /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app_new /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app
