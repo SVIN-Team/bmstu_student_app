@@ -76,12 +76,11 @@ func TestLessonRepository_GetByID(t *testing.T) {
 
     startsAt := time.Now().Add(48 * time.Hour)
     endsAt := startsAt.Add(2 * time.Hour)
-
     testLesson := gormmodels.Lesson{
         ID:        uuid.New(),
         GroupID:   group.ID,
         SubjectID: subject.ID,
-        TeacherID: &teacher.ID, 
+        TeacherID: &teacher.ID,  
         Type:      gormmodels.LessonTypeLecture,
         StartsAt:  startsAt,
         EndsAt:    endsAt,
