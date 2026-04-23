@@ -3,6 +3,7 @@ package gormrepository
 import (
 	"context"
 	"errors"
+	"sync"
 
 	apperrors "stud_hub/internal/errors"
 	"stud_hub/internal/models"
@@ -15,10 +16,11 @@ import (
 
 type GroupRepository struct {
 	db *gorm.DB
+	mu sync.Mutex
 }
 
 func NewGroupRepository(db *gorm.DB) *GroupRepository {
-	return &GroupRepository{db: db}
+	return &GroupRepository{db: db, mu: sync.Mutex{}}
 }
 
 func (r *GroupRepository) GetByID(ctx context.Context, id uuid.UUID) (models.Group, error) {
@@ -43,6 +45,34 @@ func (r *GroupRepository) GetByName(ctx context.Context, name string) (models.Gr
 		return models.Group{}, apperrors.ErrInternalServer
 	}
 	return models.Group{ID: g.ID, Name: g.Name}, nil
+}
+
+func (r *GroupRepository) GetOrCreateByName(ctx context.Context, name string) (uuid.UUID, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	var g gormmodels.Group
+	err := r.db.WithContext(ctx).First(&g, "name = ?", name).Error
+	if err == nil {
+		return g.ID, nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		logger.Errorf(ctx, "gorm: failed to find group by name %s: %v", name, err)
+		return uuid.UUID{}, apperrors.ErrInternalServer
+	}
+
+	g = gormmodels.Group{Name: name}
+	if err := r.db.WithContext(ctx).Create(&g).Error; err != nil {
+		if isUniqueViolationFault(err) {
+			if err := r.db.WithContext(ctx).First(&g, "name = ?", name).Error; err == nil {
+				return g.ID, nil
+			}
+		}
+		logger.Errorf(ctx, "gorm: failed to create group %s: %v", name, err)
+		return uuid.UUID{}, apperrors.ErrInternalServer
+	}
+
+	return g.ID, nil
 }
 
 func (r *GroupRepository) GetAll(ctx context.Context) ([]models.Group, error) {

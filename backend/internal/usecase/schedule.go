@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -261,13 +260,10 @@ func (s *ScheduleUseCase) processImportRow(ctx context.Context, row models.Sched
 		return models.Lesson{}, fmt.Errorf("line %d: end time must be after start time", row.LineNum)
 	}
 
-	// Группа должна существовать
-	group, err := s.groupRepo.GetByName(ctx, row.GroupName)
+	// Группа создаётся или находится автоматически
+	groupID, err := s.groupRepo.GetOrCreateByName(ctx, row.GroupName)
 	if err != nil {
-		if errors.Is(err, apperrors.ErrGroupNotFound) {
-			return models.Lesson{}, fmt.Errorf("line %d: group '%s' not found", row.LineNum, row.GroupName)
-		}
-		return models.Lesson{}, fmt.Errorf("line %d: error fetching group '%s': %v", row.LineNum, row.GroupName, err)
+		return models.Lesson{}, fmt.Errorf("line %d: group error: %v", row.LineNum, err)
 	}
 
 	// Предмет создаётся или находится автоматически
@@ -310,7 +306,7 @@ func (s *ScheduleUseCase) processImportRow(ctx context.Context, row models.Sched
 
 	return models.Lesson{
 		ID:         uuid.New(),
-		GroupID:    group.ID,
+		GroupID:    groupID,
 		SubjectID:  subjectID,
 		TeacherID:  teacherIDVal,
 		RoomID:     roomIDVal,
