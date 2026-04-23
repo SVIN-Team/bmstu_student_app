@@ -134,13 +134,19 @@ jobs:
       - name: Make binary executable
         run: chmod +x ./artifact/bmstu_app
       
+      - name: Stop application before update
+        run: |
+          sudo systemctl stop bmstu_app || true
+          sleep 2
+      
       - name: Copy binary to VM
         run: |
-          cp ./artifact/bmstu_app /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app
+          cp ./artifact/bmstu_app /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app_new
+          mv /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app_new /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app
       
       - name: Restart application
         run: |
-          sudo systemctl restart bmstu_app
+          sudo systemctl start bmstu_app
           sleep 3
           sudo systemctl status bmstu_app --no-pager
 
