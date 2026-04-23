@@ -81,7 +81,7 @@ func TestLessonRepository_GetByID(t *testing.T) {
         ID:        uuid.New(),
         GroupID:   group.ID,
         SubjectID: subject.ID,
-        TeacherID: teacher.ID,
+        TeacherID: &teacher.ID,
         Type:      gormmodels.LessonTypeLecture,
         StartsAt:  startsAt,
         EndsAt:    endsAt,

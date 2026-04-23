@@ -162,7 +162,7 @@ func TestQueueRepository_GetByLessonID(t *testing.T) {
         ID:        uuid.New(),
         GroupID:   group.ID,
         SubjectID: subject.ID,
-        TeacherID: teacher.ID,
+        TeacherID: &teacher.ID,
         Type:      gormmodels.LessonTypeLecture,
         StartsAt:  time.Now().Add(48 * time.Hour),
         EndsAt:    time.Now().Add(50 * time.Hour),
