@@ -51,8 +51,12 @@ services:
       REDIS_CONNECTION_STRING: ${REDIS_CONNECTION_STRING}
       ACCESS_SECRET_KEY: ${ACCESS_SECRET_KEY}
       REFRESH_SECRET_KEY: ${REFRESH_SECRET_KEY}
+      FIRST_ADMIN_EMAIL: ${FIRST_ADMIN_EMAIL}
+      FIRST_ADMIN_PASSWORD: ${FIRST_ADMIN_PASSWORD}
     volumes:
       - ../deploy/config.yaml:/app/deploy/config.yaml:ro
+    ports:
+      - "8080:8080"
 
 volumes:
   postgres_data:

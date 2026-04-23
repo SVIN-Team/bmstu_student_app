@@ -74,7 +74,7 @@ Authorization: Bearer <access_token>  (для защищённых эндпои�
   "password": "SecurePass123!",
   "first_name": "Иван",
   "last_name": "Петров",
-  "group_id": "123e4567-e89b-12d3-a456-426614174000"
+  "group_name": "ИУ7-81Б"
 }
 ```
 *Response (201 Created):*

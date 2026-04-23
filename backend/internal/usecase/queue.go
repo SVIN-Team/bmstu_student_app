@@ -35,21 +35,20 @@ type QueueRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-type UserReader interface {
-	GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
-}
-
 type QueueUseCase struct {
 	queueRepo      QueueRepository
 	queueSlotsRepo QueueSlotsRepository
-	userRepo       UserReader
+	userRepo       UserRepository
+	lessonRepo     LessonRepository
 }
 
-func NewQueueUseCase(queueRepo QueueRepository, queueSlotsRepo QueueSlotsRepository, userRepo UserReader) *QueueUseCase {
+func NewQueueUseCase(queueRepo QueueRepository, queueSlotsRepo QueueSlotsRepository, userRepo UserRepository,
+	lessonRepo LessonRepository) *QueueUseCase {
 	return &QueueUseCase{
 		queueRepo:      queueRepo,
 		userRepo:       userRepo,
 		queueSlotsRepo: queueSlotsRepo,
+		lessonRepo:     lessonRepo,
 	}
 }
 
@@ -116,38 +115,61 @@ func (q *QueueUseCase) GetMyQueues(ctx context.Context, studentID uuid.UUID) ([]
 	return result, nil
 }
 
-// ==================== Создание/управление (для старосты) ====================
-
-// CreateQueueParams параметры создания очереди
-type CreateQueueParams struct {
-	GroupID            uuid.UUID
-	SubjectID          uuid.UUID
-	LessonID           uuid.UUID
-	CreatedByUserID    uuid.UUID
-	OpensAt            time.Time
-	ClosesAt           *time.Time
-	MaxSize            *uint32
-	TransferFailedFrom *uuid.UUID // ID предыдущей очереди для переноса неуспевших
+// GetSlotsByQueueID возвращает все слоты в очереди
+func (q *QueueUseCase) GetSlotsByQueueID(ctx context.Context, queueID uuid.UUID) ([]models.QueueSlot, error) {
+	slots, err := q.queueSlotsRepo.GetSlotsByQueueID(ctx, queueID)
+	if err != nil {
+		logger.Errorf(ctx, "failed to get slots for queue %s: %v", queueID, err)
+		return nil, apperrors.ErrInternalServer
+	}
+	return slots, nil
 }
 
+// GetSlotByID возвращает слот по ID
+func (q *QueueUseCase) GetSlotByID(ctx context.Context, slotID uuid.UUID) (models.QueueSlot, error) {
+	slot, err := q.queueSlotsRepo.GetSlotByID(ctx, slotID)
+	if err != nil {
+		return models.QueueSlot{}, apperrors.ErrSlotNotFound
+	}
+	return slot, nil
+}
+
+// ==================== Создание/управление (для старосты) ====================
+
 // Create создаёт новую очередь
-func (q *QueueUseCase) Create(ctx context.Context, params CreateQueueParams) (uuid.UUID, error) {
+func (q *QueueUseCase) Create(ctx context.Context, params models.CreateQueueParams) (uuid.UUID, error) {
 	// Валидация времени
 	if params.ClosesAt != nil && !params.ClosesAt.After(params.OpensAt) {
 		return uuid.Nil, apperrors.ErrInvalidQueueTime
 	}
 
+	lesson, err := q.lessonRepo.GetByID(ctx, params.LessonID)
+	if err != nil {
+		logger.Errorf(ctx, "failed to get lesson: %v", err)
+		return uuid.Nil, apperrors.ErrInternalServer
+	}
+
+	creator, err := q.userRepo.GetUserByID(ctx, params.CreatedByUserID)
+	if err != nil {
+		logger.Errorf(ctx, "failed to get queue creator %s: %v", params.CreatedByUserID, err)
+		return uuid.Nil, apperrors.ErrInternalServer
+	}
+
+	if creator.GroupID != lesson.GroupID && creator.Role != models.RoleAdmin && creator.Role != models.RoleHeadman {
+		return uuid.Nil, apperrors.ErrForbidden
+	}
+
 	queue := models.Queue{
 		ID:              uuid.New(),
-		GroupID:         params.GroupID,
-		SubjectID:       params.SubjectID,
+		GroupID:         lesson.GroupID,
+		SubjectID:       lesson.SubjectID,
 		LessonID:        params.LessonID,
 		CreatedByUserID: params.CreatedByUserID,
 		CreatedAt:       time.Now(),
 		OpensAt:         params.OpensAt,
-		ClosesAt:        params.ClosesAt,
-		MaxSize:         params.MaxSize,
 		Status:          models.QueueStatusDraft,
+		MaxSize:         params.MaxSize,
+		ClosesAt:        params.ClosesAt,
 	}
 
 	id, err := q.queueRepo.Create(ctx, queue)
@@ -198,7 +220,6 @@ func (q *QueueUseCase) Update(ctx context.Context, headmanID uuid.UUID, queue mo
 	queue.LessonID = existing.LessonID
 	queue.CreatedByUserID = existing.CreatedByUserID
 	queue.CreatedAt = existing.CreatedAt
-	queue.Status = existing.Status
 
 	if err := q.queueRepo.Update(ctx, queue); err != nil {
 		logger.Errorf(ctx, "failed to update queue: %v", err)
@@ -286,43 +307,43 @@ func (q *QueueUseCase) Close(ctx context.Context, headmanID, queueID uuid.UUID) 
 // ==================== Запись в очередь (для студентов) ====================
 
 // SignUp записывает студента в очередь
-func (q *QueueUseCase) SignUp(ctx context.Context, studentID, queueID uuid.UUID) (int, error) {
+func (q *QueueUseCase) SignUp(ctx context.Context, studentID, queueID uuid.UUID) (*models.QueueSlot, error) {
 	queue, err := q.queueRepo.GetByID(ctx, queueID)
 	if err != nil {
-		return 0, apperrors.ErrQueueNotFound
+		return nil, apperrors.ErrQueueNotFound
 	}
 
 	// Проверяем статус очереди
 	if queue.Status != models.QueueStatusOpen {
-		return 0, apperrors.ErrQueueNotOpen
+		return nil, apperrors.ErrQueueNotOpen
 	}
 
 	// Проверяем время
 	now := time.Now()
 	if now.Before(queue.OpensAt) {
-		return 0, apperrors.ErrQueueNotOpen
+		return nil, apperrors.ErrQueueNotOpen
 	}
 	if queue.ClosesAt != nil && now.After(*queue.ClosesAt) {
-		return 0, apperrors.ErrQueueClosed
+		return nil, apperrors.ErrQueueClosed
 	}
 
 	// Проверяем, что студент из той же группы
 	user, err := q.userRepo.GetUserByID(ctx, studentID)
 	if err != nil {
-		return 0, apperrors.ErrUserNotFound
+		return nil, apperrors.ErrUserNotFound
 	}
 	if user.GroupID != queue.GroupID {
-		return 0, apperrors.ErrNotInQueueGroup
+		return nil, apperrors.ErrNotInQueueGroup
 	}
 
 	// Проверяем, не записан ли уже
 	existingSlot, err := q.queueSlotsRepo.GetSlotByQueueAndStudent(ctx, queueID, studentID)
 	if err != nil {
 		logger.Errorf(ctx, "failed to get slot by queue and student: %v", err)
-		return 0, apperrors.ErrInternalServer
+		return nil, apperrors.ErrInternalServer
 	}
 	if existingSlot != nil {
-		return 0, apperrors.ErrAlreadyInQueue
+		return nil, apperrors.ErrAlreadyInQueue
 	}
 
 	// Проверяем лимит
@@ -330,10 +351,10 @@ func (q *QueueUseCase) SignUp(ctx context.Context, studentID, queueID uuid.UUID)
 		count, err := q.queueSlotsRepo.GetSlotsCount(ctx, queueID)
 		if err != nil {
 			logger.Errorf(ctx, "failed to get slots count: %v", err)
-			return 0, apperrors.ErrInternalServer
+			return nil, apperrors.ErrInternalServer
 		}
 		if count >= int(*queue.MaxSize) {
-			return 0, apperrors.ErrQueueFull
+			return nil, apperrors.ErrQueueFull
 		}
 	}
 
@@ -349,15 +370,15 @@ func (q *QueueUseCase) SignUp(ctx context.Context, studentID, queueID uuid.UUID)
 	newSlot, err := q.queueSlotsRepo.CreateSlot(ctx, slot)
 	if err != nil {
 		logger.Errorf(ctx, "failed to create slot: %v", err)
-		return 0, apperrors.ErrInternalServer
+		return nil, apperrors.ErrInternalServer
 	}
 	if newSlot == nil {
 		logger.Errorf(ctx, "queueRepo.CreateSlot returned nil slot without error")
-		return 0, apperrors.ErrInternalServer
+		return nil, apperrors.ErrInternalServer
 	}
 
 	logger.Infof(ctx, "student %s signed up for queue %s at position %d", studentID, queueID, newSlot.Position)
-	return newSlot.Position, nil
+	return newSlot, nil
 }
 
 // CancelSignUp отменяет запись студента

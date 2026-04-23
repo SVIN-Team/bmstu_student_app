@@ -1,6 +1,7 @@
 
 GO_BUILD := go build
 GO_TEST := go test
+SWAG := go run github.com/swaggo/swag/cmd/swag@v1.16.6
 EXE_PATH := build/app
 
 $(EXE_PATH): cmd/main.go
@@ -21,3 +22,7 @@ clean:
 .PHONY: unit_test
 unit_test:
 	$(GO_TEST) -tags=unit ./...
+
+.PHONY: swagger
+swagger:
+	$(SWAG) init -g cmd/main.go -o docs --parseInternal

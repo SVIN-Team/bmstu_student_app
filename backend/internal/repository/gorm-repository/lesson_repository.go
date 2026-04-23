@@ -65,7 +65,7 @@ func (r *LessonRepository) Update(ctx context.Context, lesson models.Lesson) err
 	builder.
 		UpdateUUID("group_id", l.GroupID).
 		UpdateUUID("subject_id", l.SubjectID).
-		UpdateUUID("teacher_id", l.TeacherID).
+		SetPtrUUID("teacher_id", l.TeacherID).
 		SetPtrUUID("room_id", l.RoomID).
 		UpdateValue("type", l.Type).
 		UpdateTime("starts_at", l.StartsAt).
@@ -153,6 +153,11 @@ func (r *LessonRepository) GetLessonDetails(ctx context.Context, id uuid.UUID) (
 		roomName = *l.Room.Name
 	}
 
+	teacherName := ""
+	if l.Teacher != nil {
+		teacherName = l.Teacher.Name()
+	}
+
 	queueID, err := r.getQueueIDByLesson(ctx, lesson.ID)
 	if err != nil {
 		return models.LessonDetails{}, err
@@ -161,7 +166,7 @@ func (r *LessonRepository) GetLessonDetails(ctx context.Context, id uuid.UUID) (
 	return models.LessonDetails{
 		Lesson:      lesson,
 		GroupName:   l.Group.Name,
-		TeacherName: l.Teacher.Name(),
+		TeacherName: teacherName,
 		SubjectName: l.Subject.Name,
 		RoomName:    roomName,
 		QueueID:     queueID,
@@ -180,5 +185,3 @@ func (r *LessonRepository) getQueueIDByLesson(ctx context.Context, lessonID uuid
 	}
 	return &q.ID, nil
 }
-
-

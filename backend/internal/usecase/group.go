@@ -75,6 +75,9 @@ func (g *GroupUseCase) Update(ctx context.Context, group models.Group) error {
 
 	if err := g.groupRepo.Update(ctx, group); err != nil {
 		logger.Errorf(ctx, "failed to update group: %v", err)
+		if errors.Is(err, apperrors.ErrUniqueViolationFault) {
+			return apperrors.ErrUniqueViolationFault
+		}
 		return apperrors.ErrInternalServer
 	}
 
@@ -103,4 +106,8 @@ func (g *GroupUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 
 	logger.Infof(ctx, "group deleted: %s", id)
 	return nil
+}
+
+func (g *GroupUseCase) GetByName(ctx context.Context, name string) (models.Group, error) {
+	return g.groupRepo.GetByName(ctx, name)
 }
