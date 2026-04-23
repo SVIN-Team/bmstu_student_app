@@ -118,7 +118,7 @@ jobs:
 
   deploy:
     name: Deploy to VM
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: |
       (github.event_name == 'push' && github.ref_name == 'develop')
       || github.event_name == 'workflow_dispatch'
@@ -134,28 +134,15 @@ jobs:
       - name: Make binary executable
         run: chmod +x ./artifact/bmstu_app
       
-      - name: Copy binary to VM via SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          source: "./artifact/bmstu_app"
-          target: "/home/${{ secrets.DEPLOY_USER }}/bmstu_app/"
-          strip_components: 2
+      - name: Copy binary to VM
+        run: |
+          cp ./artifact/bmstu_app /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app
       
-      - name: Restart application via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          script: |
-            sudo systemctl restart bmstu_app
-            sleep 3
-            sudo systemctl status bmstu_app --no-pager
+      - name: Restart application
+        run: |
+          sudo systemctl restart bmstu_app
+          sleep 3
+          sudo systemctl status bmstu_app --no-pager
 
   health-check:
     name: Health Check
