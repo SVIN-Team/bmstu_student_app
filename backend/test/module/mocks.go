@@ -5,7 +5,7 @@ package module
 import (
 	"context"
 	"time"
-	
+
 	"stud_hub/internal/models"
 
 	"github.com/google/uuid"
@@ -58,6 +58,95 @@ func (m *MockTokenRepository) DeleteRefreshToken(ctx context.Context, jti uuid.U
 func (m *MockTokenRepository) DeleteUserRefreshTokens(ctx context.Context, userID uuid.UUID) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
+}
+
+type MockGroupRepository struct {
+	mock.Mock
+}
+
+func (m *MockGroupRepository) GetByID(ctx context.Context, id uuid.UUID) (models.Group, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(models.Group), args.Error(1)
+}
+
+func (m *MockGroupRepository) GetByName(ctx context.Context, name string) (models.Group, error) {
+	args := m.Called(ctx, name)
+	return args.Get(0).(models.Group), args.Error(1)
+}
+
+func (m *MockGroupRepository) GetOrCreateByName(ctx context.Context, name string) (uuid.UUID, error) {
+	args := m.Called(ctx, name)
+	return args.Get(0).(uuid.UUID), args.Error(1)
+}
+
+func (m *MockGroupRepository) GetAll(ctx context.Context) ([]models.Group, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]models.Group), args.Error(1)
+}
+
+func (m *MockGroupRepository) Create(ctx context.Context, group models.Group) (uuid.UUID, error) {
+	args := m.Called(ctx, group)
+	return args.Get(0).(uuid.UUID), args.Error(1)
+}
+
+func (m *MockGroupRepository) Update(ctx context.Context, group models.Group) error {
+	args := m.Called(ctx, group)
+	return args.Error(0)
+}
+
+func (m *MockGroupRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *MockGroupRepository) HasUsers(ctx context.Context, id uuid.UUID) (bool, error) {
+	args := m.Called(ctx, id)
+	return args.Bool(0), args.Error(1)
+}
+
+type MockSubjectRepository struct {
+	mock.Mock
+}
+
+func (m *MockSubjectRepository) GetByID(ctx context.Context, id uuid.UUID) (models.Subject, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(models.Subject), args.Error(1)
+}
+
+func (m *MockSubjectRepository) GetOrCreateByName(ctx context.Context, name string) (uuid.UUID, error) {
+	args := m.Called(ctx, name)
+	return args.Get(0).(uuid.UUID), args.Error(1)
+}
+
+type MockTeacherRepository struct {
+	mock.Mock
+}
+
+func (m *MockTeacherRepository) GetByID(ctx context.Context, id uuid.UUID) (models.Teacher, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(models.Teacher), args.Error(1)
+}
+
+func (m *MockTeacherRepository) GetOrCreateByFullName(ctx context.Context, lastName, firstName, patronymic string) (uuid.UUID, error) {
+	args := m.Called(ctx, lastName, firstName, patronymic)
+	return args.Get(0).(uuid.UUID), args.Error(1)
+}
+
+type MockClassroomRepository struct {
+	mock.Mock
+}
+
+func (m *MockClassroomRepository) GetByID(ctx context.Context, id uuid.UUID) (models.Classroom, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(models.Classroom), args.Error(1)
+}
+
+func (m *MockClassroomRepository) GetOrCreateByName(ctx context.Context, name string) (uuid.UUID, error) {
+	args := m.Called(ctx, name)
+	return args.Get(0).(uuid.UUID), args.Error(1)
 }
 
 type MockQueueRepository struct {
