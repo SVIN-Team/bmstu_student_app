@@ -143,6 +143,7 @@ jobs:
         run: |
           cp ./artifact/bmstu_app /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app_new
           mv /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app_new /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app
+          cp ./backend/deploy/config.yaml /home/${{ secrets.DEPLOY_USER }}/bmstu_app/config.yaml
       
       - name: Restart application
         run: |
