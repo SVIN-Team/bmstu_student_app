@@ -14,6 +14,31 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: stud_hub_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -35,6 +60,31 @@ jobs:
       - name: Download Go dependencies
         working-directory: ./backend
         run: go mod download
+        
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U test_user; then
+              echo "PostgreSQL is ready"
+              break
+            fi
+            echo "Waiting for PostgreSQL... $i"
+            sleep 2
+          done
+
+      - name: Install Redis CLI
+        run: sudo apt-get update && sudo apt-get install -y redis-tools
+
+      - name: Wait for Redis
+        run: |
+          for i in {1..30}; do
+            if redis-cli -h localhost -p 6379 ping; then
+              echo "Redis is ready"
+              break
+            fi
+            echo "Waiting for Redis... $i"
+            sleep 2
+          done
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
@@ -44,6 +94,10 @@ jobs:
       - name: Run Go unit tests
         working-directory: ./backend
         run: go test --tags=unit -v ./...
+      
+      - name: Run Go integration tests
+        working-directory: ./backend
+        run: go test --tags=integration -v ./...
 
       - name: Build Go project
         working-directory: ./backend
