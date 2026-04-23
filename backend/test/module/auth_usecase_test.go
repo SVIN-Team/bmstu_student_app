@@ -47,6 +47,9 @@ func TestAuthUseCase_SignUp_Success(t *testing.T) {
 	assert.NotEmpty(t, accessToken)
 	assert.NotEmpty(t, refreshToken)
 	assert.Equal(t, expectedUserID, userID)
+
+	mockUserRepo.AssertExpectations(t)
+    mockTokenRepo.AssertExpectations(t)
 }
 
 func TestAuthUseCase_SignUp_DuplicateEmail(t *testing.T) {

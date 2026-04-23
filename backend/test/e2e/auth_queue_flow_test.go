@@ -51,7 +51,8 @@ func TestAuthQueueFlow(t *testing.T) {
     t.Logf("Tokens refreshed")
     
     // Создание группы
-    group := CreateTestGroup(services.DB, "E2E Test Group")
+    group, err := CreateTestGroup(services.DB, "E2E Test Group")
+    require.NoError(t, err)
     require.NotNil(t, group)
     t.Logf("Group created: %s", group.ID)
     

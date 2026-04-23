@@ -137,8 +137,11 @@ func initGlobalDB() error {
     sqlDB.SetConnMaxLifetime(time.Hour)
     
     var exists bool
-    db.Raw("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'users')").Scan(&exists)
-    
+    err = db.Raw("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'users')").Scan(&exists).Error
+    if err != nil {
+        return fmt.Errorf("failed to check if table exists: %v", err)
+    }
+
     if !exists {
         if migrationSQL == nil {
             migrationSQL, err = os.ReadFile("../../deploy/postgresql/001-init.sql")
@@ -146,12 +149,11 @@ func initGlobalDB() error {
                 return fmt.Errorf("failed to read migration file: %v", err)
             }
         }
-        
+
         if err := db.Exec(string(migrationSQL)).Error; err != nil {
             return fmt.Errorf("failed to execute migration: %v", err)
         }
     }
-    
     globalDB = db
     return nil
 }
@@ -206,28 +208,32 @@ func SetupTestDB(t *testing.T) (*gorm.DB, *redis.Client, func()) {
         }
         
         for _, table := range tables {
-            globalDB.Exec(fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", table))
+            if err := globalDB.Exec(fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", table)).Error; err != nil {
+                t.Logf("Warning: failed to truncate table %s: %v", table, err)
+            }
         }
-        
+
         if globalRedis != nil {
-            globalRedis.FlushAll(context.Background())
+            if err := globalRedis.FlushAll(context.Background()).Err(); err != nil {
+                t.Logf("Warning: failed to flush Redis: %v", err)
+            }
         }
     }
     
     return globalDB, globalRedis, cleanup
 }
 
-func CreateTestGroup(db *gorm.DB, name string) *gormmodels.Group {
+func CreateTestGroup(db *gorm.DB, name string) (*gormmodels.Group, error) {
     group := &gormmodels.Group{
         ID:   uuid.New(),
         Name: name,
     }
-    
+
     if err := db.Create(group).Error; err != nil {
-        return nil
+        return nil, fmt.Errorf("failed to create test group %s: %v", name, err)
     }
-    
-    return group
+
+    return group, nil
 }
 
 func CreateTestSubject(db *gorm.DB, name string) *gormmodels.Subject {

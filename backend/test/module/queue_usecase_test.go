@@ -51,7 +51,6 @@ func TestQueueUseCase_SignUp_Success(t *testing.T) {
 	mockQueueRepo.On("GetByID", ctx, queueID).Return(queue, nil)
 	mockUserRepo.On("GetUserByID", ctx, studentID).Return(user, nil)
 	mockQueueSlotsRepo.On("GetSlotByQueueAndStudent", ctx, queueID, studentID).Return(nil, nil)
-	mockQueueSlotsRepo.On("GetSlotsCount", ctx, queueID).Return(0, nil)
 	mockQueueSlotsRepo.On("CreateSlot", ctx, mock.AnythingOfType("models.QueueSlot")).Return(expectedSlot, nil)
 
 	qUC := usecase.NewQueueUseCase(mockQueueRepo, mockQueueSlotsRepo, mockUserRepo, mockLessonRepo)
@@ -61,6 +60,11 @@ func TestQueueUseCase_SignUp_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, slot)
 	assert.Equal(t, studentID, slot.StudentID)
+
+	mockQueueRepo.AssertExpectations(t)
+    mockQueueSlotsRepo.AssertExpectations(t)
+    mockUserRepo.AssertExpectations(t)
+    mockLessonRepo.AssertExpectations(t)
 }
 
 func TestQueueUseCase_MarkPassedCount_Success(t *testing.T) {
