@@ -1,0 +1,175 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'develop'
+  pull_request:
+    branches:
+      - 'main'
+      - 'develop'
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: stud_hub_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Download Go dependencies
+        working-directory: ./backend
+        run: go mod download
+        
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U test_user; then
+              echo "PostgreSQL is ready"
+              break
+            fi
+            echo "Waiting for PostgreSQL... $i"
+            sleep 2
+          done
+
+      - name: Install Redis CLI
+        run: sudo apt-get update && sudo apt-get install -y redis-tools
+
+      - name: Wait for Redis
+        run: |
+          for i in {1..30}; do
+            if redis-cli -h localhost -p 6379 ping; then
+              echo "Redis is ready"
+              break
+            fi
+            echo "Waiting for Redis... $i"
+            sleep 2
+          done
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          working-directory: ./backend
+
+      - name: Run Go unit tests
+        working-directory: ./backend
+        run: go test --tags=unit -v ./...
+      
+      - name: Run Go integration tests
+        working-directory: ./backend
+        run: go test --tags=integration -v ./...
+
+      - name: Run Go E2E tests
+        working-directory: ./backend
+        run: go test --tags=e2e -v ./test/e2e/...
+
+      - name: Build Go project
+        working-directory: ./backend
+        run: go build -v -o bmstu_app cmd/main.go
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bmstu_app_binary
+          path: ./backend/bmstu_app
+          retention-days: 7
+
+  deploy:
+    name: Deploy to VM
+    runs-on: self-hosted
+    if: |
+      (github.event_name == 'push' && github.ref_name == 'develop')
+      || github.event_name == 'workflow_dispatch'
+    needs: build-and-test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: bmstu_app_binary
+          path: ./artifact
+      
+      - name: Make binary executable
+        run: chmod +x ./artifact/bmstu_app
+      
+      - name: Stop application
+        run: |
+          sudo systemctl stop bmstu_app || true
+          sleep 2
+      
+      - name: Copy binary and config
+        run: |
+          cp ./artifact/bmstu_app /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app_new
+          mv /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app_new /home/${{ secrets.DEPLOY_USER }}/bmstu_app/bmstu_app
+          cp -r ./backend/deploy/* /home/${{ secrets.DEPLOY_USER }}/bmstu_app/
+          cp ./backend/deploy/.env /home/${{ secrets.DEPLOY_USER }}/bmstu_app/.env || true
+      
+      - name: Restart application
+        run: |
+          sudo systemctl start bmstu_app
+          sleep 3
+          sudo systemctl status bmstu_app --no-pager
+
+  health-check:
+    name: Health Check
+    runs-on: self-hosted
+    needs: deploy
+    if: always() && needs.deploy.result == 'success'
+    
+    steps:
+      - name: Check /api/v1/health endpoint
+        run: |
+          curl --fail --retry 5 --retry-delay 10 \
+            http://localhost:8080/api/v1/health || exit 1
+      
+      - name: Health check passed
+        if: success()
+        run: echo "Application is healthy!"
+      
+      - name: Health check failed
+        if: failure()
+        run: echo "Health check failed! Check the application."
