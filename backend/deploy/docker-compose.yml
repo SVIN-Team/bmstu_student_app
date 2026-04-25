@@ -58,24 +58,6 @@ services:
     ports:
       - "8080:8080"
 
-  frontend:
-    build:
-      context: ../../frontend
-      dockerfile: Dockerfile
-    container_name: stud_hub_frontend
-    depends_on:
-      - app
-    environment:
-      VITE_USE_MOCKS: "false"
-      VITE_API_URL: /api/v1
-      VITE_DEV_PROXY_TARGET: http://app:8080
-    ports:
-      - "5173:5173"
-    volumes:
-      - ../../frontend/src:/app/src
-      - ../../frontend/public:/app/public
-      - ../../frontend/index.html:/app/index.html
-      - ../../frontend/vite.config.js:/app/vite.config.js
 
 volumes:
   postgres_data:
