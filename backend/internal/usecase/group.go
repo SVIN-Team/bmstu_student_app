@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+
 	apperrors "stud_hub/internal/errors"
 	"stud_hub/internal/models"
 	"stud_hub/util/logger"
@@ -13,6 +14,7 @@ import (
 type GroupRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (models.Group, error)
 	GetByName(ctx context.Context, name string) (models.Group, error)
+	GetOrCreateByName(ctx context.Context, name string) (uuid.UUID, error)
 	GetAll(ctx context.Context) ([]models.Group, error)
 	Create(ctx context.Context, group models.Group) (uuid.UUID, error)
 	Update(ctx context.Context, group models.Group) error
