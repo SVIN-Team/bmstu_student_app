@@ -58,6 +58,16 @@ def hash_password(password: str) -> str:
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
+def transliterate(text: str) -> str:
+    mapping = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
+        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+        'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+    }
+    return ''.join(mapping.get(c, c) for c in text.lower())
+
 def generate_lessons_for_group(
         group_id: uuid.UUID,
         subject_ids: List[uuid.UUID],
@@ -121,8 +131,39 @@ def seed_database():
         conn = psycopg.connect(**DB_CONFIG, autocommit=False)
         cur = conn.cursor()
 
-        print("Очистка таблиц...")
-        cur.execute("TRUNCATE TABLE queue_slots, queues, lessons, users, groups, subjects, teachers, rooms CASCADE;")
+        print("Очистка только сгенерированных скриптом данных (дефолтные пользователи и данные останутся)...")
+        # 1. Сначала удаляем слоты очереди, связанные со студентами-ботами или группами
+        cur.execute("DELETE FROM queue_slots WHERE student_id IN (SELECT id FROM users WHERE email LIKE '%@student.edu') OR queue_id IN (SELECT id FROM queues WHERE group_id IN (SELECT id FROM groups WHERE name SIMILAR TO '(ИВТ|ПИ|РТ|БИ)-%'));")
+
+        # 2. Удаляем очереди, которые скрипт создал для сгенерированных групп
+        cur.execute("DELETE FROM queues WHERE created_by IN (SELECT id FROM users WHERE email LIKE '%@student.edu' OR email LIKE 'admin.%@edu.ru') OR group_id IN (SELECT id FROM groups WHERE name SIMILAR TO '(ИВТ|ПИ|РТ|БИ)-%');")
+
+        # 3. Отвязываем старост, чтобы пользователи не блокировались (FK constrain)
+        cur.execute("UPDATE groups SET headman_id = NULL WHERE name SIMILAR TO '(ИВТ|ПИ|РТ|БИ)-%';")
+
+        # 4. Удаляем сгенерированные уроки
+        cur.execute("DELETE FROM lessons WHERE group_id IN (SELECT id FROM groups WHERE name SIMILAR TO '(ИВТ|ПИ|РТ|БИ)-%');")
+
+        # 5. Удаляем сгенерированных пользователей (студентов и дополнительных админов)
+        cur.execute("DELETE FROM users WHERE email LIKE '%@student.edu' OR email LIKE 'admin.%@edu.ru';")
+
+        # 6. Удаляем сгенерированные группы
+        cur.execute("DELETE FROM groups WHERE name SIMILAR TO '(ИВТ|ПИ|РТ|БИ)-%';")
+
+        # 7. Удаляем сгенерированные аудитории
+        cur.execute("DELETE FROM rooms WHERE name SIMILAR TO '(A|B|C|ГК)-%';")
+
+        # 8. Удаляем сгенерированные предметы
+        subject_names = [
+            "Базы данных", "Web-разработка", "Операционные системы", "Алгоритмы и структуры данных",
+            "Математический анализ", "Физика", "Английский язык", "Информационная безопасность",
+            "Машинное обучение", "Программирование на Python", "Компьютерные сети", "Технологии Java"
+        ]
+        cur.execute("DELETE FROM subjects WHERE name = ANY(%s);", (subject_names,))
+
+        # 9. Удаляем учителей, у которых нет уроков (вычистим ранее сгенерированных, не трогая тех, у кого остались какие-то пары)
+        cur.execute("DELETE FROM teachers WHERE id NOT IN (SELECT teacher_id FROM lessons WHERE teacher_id IS NOT NULL);")
+
         conn.commit()
 
         now = datetime.now()
@@ -194,7 +235,7 @@ def seed_database():
                 first_name = fake.first_name()
                 last_name = fake.last_name()
                 patronymic = fake.middle_name()
-                email = f"{last_name.lower()}.{first_name.lower()}.{random.randint(1,999)}@student.edu"
+                email = f"{transliterate(last_name)}.{transliterate(first_name)}.{random.randint(1,999)}@student.edu"
                 cur.execute("""
                             INSERT INTO users (email, password_hash, first_name, last_name, patronymic, role, group_id)
                             VALUES (%s, %s, %s, %s, %s, 'student', %s) RETURNING id
@@ -212,7 +253,7 @@ def seed_database():
             first_name = fake.first_name()
             last_name = fake.last_name()
             patronymic = fake.middle_name()
-            email = f"admin.{last_name.lower()}@edu.ru"
+            email = f"admin.{transliterate(last_name)}@edu.ru"
             cur.execute("""
                         INSERT INTO users (email, password_hash, first_name, last_name, patronymic, role, group_id)
                         VALUES (%s, %s, %s, %s, %s, 'admin', NULL) RETURNING id

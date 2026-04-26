@@ -125,6 +125,15 @@ func (q *QueueUseCase) GetSlotsByQueueID(ctx context.Context, queueID uuid.UUID)
 	return slots, nil
 }
 
+func (q *QueueUseCase) GetSlotsCount(ctx context.Context, queueID uuid.UUID) (int, error) {
+	count, err := q.queueSlotsRepo.GetSlotsCount(ctx, queueID)
+	if err != nil {
+		logger.Errorf(ctx, "failed to count slots for queue %s: %v", queueID, err)
+		return 0, apperrors.ErrInternalServer
+	}
+	return count, nil
+}
+
 // GetSlotByID возвращает слот по ID
 func (q *QueueUseCase) GetSlotByID(ctx context.Context, slotID uuid.UUID) (models.QueueSlot, error) {
 	slot, err := q.queueSlotsRepo.GetSlotByID(ctx, slotID)

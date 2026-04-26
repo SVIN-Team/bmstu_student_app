@@ -20,6 +20,7 @@ type QueueUseCase interface {
     Create(ctx context.Context, params models.CreateQueueParams) (uuid.UUID, error)
     GetByID(ctx context.Context, queueID uuid.UUID) (models.Queue, error)
     GetByGroupID(ctx context.Context, groupID uuid.UUID) ([]models.Queue, error)
+    GetSlotsCount(ctx context.Context, queueID uuid.UUID) (int, error)
     Update(ctx context.Context, headmanID uuid.UUID, queue models.Queue) error
     Delete(ctx context.Context, headmanID, queueID uuid.UUID) error
 }
@@ -349,12 +350,20 @@ func (h *QueueHandler) queueToDTO(ctx context.Context, queue models.Queue, detai
         }
     }
 
+    slotsCount := 0
+    if count, err := h.queueUseCase.GetSlotsCount(ctx, queue.ID); err == nil {
+        slotsCount = count
+    } else {
+        logger.Errorf(ctx, "failed to count slots for queue %s: %v", queue.ID, err)
+    }
+
     response := dto.QueueResponse{
         ID:       queue.ID.String(),
         Status:   string(queue.Status),
         OpensAt:  queue.OpensAt,
         ClosesAt: queue.ClosesAt,
         MaxSize:  queue.MaxSize,
+        SlotsCount: &slotsCount,
         Subject: dto.SubjectResponse{
             ID:   queue.SubjectID.String(),
             Name: subjectName,
