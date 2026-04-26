@@ -5,9 +5,24 @@ import {
   LESSON_TYPE_LABELS,
   QUEUE_STATUS_LABELS,
   formatDateTime,
+  formatQueueSlots,
   getWeekRange,
 } from '../../utils/format.js'
 import { EmptyState, LoaderBlock, PageHeader, Panel, QueueCard, StatCard } from '../../components/ui/ui.jsx'
+
+function nearestOpenQueues(queues) {
+  const now = Date.now()
+
+  return [...queues]
+    .filter((queue) => queue.status === 'open')
+    .sort((left, right) => {
+      const leftTime = new Date(left.opens_at || left.closes_at || 0).getTime()
+      const rightTime = new Date(right.opens_at || right.closes_at || 0).getTime()
+
+      return Math.abs(leftTime - now) - Math.abs(rightTime - now)
+    })
+    .slice(0, 4)
+}
 
 export function DashboardPage() {
   const { api, user } = useAuth()
@@ -34,7 +49,7 @@ export function DashboardPage() {
 
         const [lessons, queues, slots] = await Promise.all([
           lessonsPromise,
-          api.getQueues({ per_page: 4 }),
+          api.getQueues({ status: 'open', per_page: 20 }),
           api.getMySlots({}),
         ])
 
@@ -42,7 +57,7 @@ export function DashboardPage() {
           loading: false,
           error: '',
           lessons: lessons || [],
-          queues: queues || [],
+          queues: (queues || []).filter((queue) => queue.status === 'open'),
           slots: slots || [],
         })
       } catch (error) {
@@ -56,6 +71,8 @@ export function DashboardPage() {
   if (state.loading) {
     return <LoaderBlock label="Собираем обзор по расписанию, очередям и вашим записям..." />
   }
+
+  const dashboardQueues = nearestOpenQueues(state.queues)
 
   return (
     <div className="page-stack">
@@ -133,10 +150,10 @@ export function DashboardPage() {
         </Panel>
       </div>
 
-      <Panel title="Актуальные очереди" description="Последние доступные очереди вашей группы.">
-        {state.queues.length ? (
+      <Panel title="Актуальные очереди" description="Ближайшие открытые очереди вашей группы.">
+        {dashboardQueues.length ? (
           <div className="queue-grid">
-            {state.queues.map((queue) => (
+            {dashboardQueues.map((queue) => (
               <QueueCard
                 key={queue.id}
                 queue={queue}
@@ -144,15 +161,12 @@ export function DashboardPage() {
               >
                 <span>Открытие: {formatDateTime(queue.opens_at)}</span>
                 <span>Закрытие: {formatDateTime(queue.closes_at)}</span>
-                <span>
-                  Слотов: {queue.slots_count}
-                  {queue.max_size ? ` / ${queue.max_size}` : ''}
-                </span>
+                <span>{formatQueueSlots(queue)}</span>
               </QueueCard>
             ))}
           </div>
         ) : (
-          <EmptyState title="Очередей нет" description="Сейчас нет очередей, подходящих под текущий контекст." />
+          <EmptyState title="Открытых очередей нет" description="Сейчас нет открытых очередей для записи." />
         )}
       </Panel>
     </div>

@@ -35,6 +35,16 @@ export function formatDateTime(value) {
   }).format(new Date(value))
 }
 
+export function formatQueueSlots(queue) {
+  const occupied = queue?.slots_count ?? 0
+
+  if (!queue?.max_size) {
+    return `Занято: ${occupied}`
+  }
+
+  return `Занято: ${occupied} / ${queue.max_size}`
+}
+
 export function formatDate(value) {
   if (!value) {
     return '—'

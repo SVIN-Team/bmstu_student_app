@@ -269,13 +269,15 @@ a {
 }
 
 .button-ghost {
-  background: rgba(181, 143, 255, 0.18);
-  color: var(--white);
+  border: 1px solid rgba(111, 70, 217, 0.34);
+  background: rgba(181, 143, 255, 0.34);
+  color: #3b247e;
 }
 
 .button-danger {
-  background: #ffe7ec;
-  color: #8f1836;
+  border: 1px solid rgba(180, 35, 67, 0.24);
+  background: #ffd2dc;
+  color: #7f102d;
 }
 
 .field {

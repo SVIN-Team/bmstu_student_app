@@ -4,6 +4,7 @@ import {
   QUEUE_STATUS_LABELS,
   canManageQueues,
   formatDateTime,
+  formatQueueSlots,
   fromDatetimeLocalValue,
   getWeekRange,
 } from '../../utils/format.js'
@@ -22,7 +23,7 @@ import {
 } from '../../components/ui/ui.jsx'
 
 const defaultFilters = {
-  group_name: '',
+  subject_name: '',
   status: '',
 }
 
@@ -37,64 +38,15 @@ function normalizeName(value) {
   return value?.trim().toLowerCase() || ''
 }
 
-function resolveGroup(groups, query) {
-  const normalizedQuery = normalizeName(query)
-  if (!normalizedQuery) {
-    return null
-  }
-
-  const exactMatch = groups.find((group) => normalizeName(group.name) === normalizedQuery)
-  if (exactMatch) {
-    return exactMatch
-  }
-
-  const containsMatches = groups.filter((group) => normalizeName(group.name).includes(normalizedQuery))
-  if (containsMatches.length === 1) {
-    return containsMatches[0]
-  }
-
-  return null
-}
-
 export function QueuesPage() {
   const { api, user } = useAuth()
   const [filters, setFilters] = useState(defaultFilters)
   const [queuesState, setQueuesState] = useState({ loading: true, error: '', queues: [] })
   const [formState, setFormState] = useState(defaultQueueForm)
   const [lessons, setLessons] = useState([])
-  const [groups, setGroups] = useState([])
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const range = useMemo(() => getWeekRange(0), [])
-  const resolvedGroup = useMemo(() => resolveGroup(groups, filters.group_name), [filters.group_name, groups])
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadGroups() {
-      if (user?.role !== 'admin') {
-        setGroups([])
-        return
-      }
-
-      try {
-        const result = await api.getResource('groups')
-        if (!cancelled) {
-          setGroups(Array.isArray(result) ? result : [])
-        }
-      } catch {
-        if (!cancelled) {
-          setGroups([])
-        }
-      }
-    }
-
-    loadGroups()
-
-    return () => {
-      cancelled = true
-    }
-  }, [api, user?.role])
 
   useEffect(() => {
     let cancelled = false
@@ -134,11 +86,6 @@ export function QueuesPage() {
     let cancelled = false
 
     async function loadQueues() {
-      if (user?.role === 'admin' && filters.group_name.trim() && !resolvedGroup) {
-        setQueuesState({ loading: false, error: 'Группа не найдена. Уточните название.', queues: [] })
-        return
-      }
-
       setQueuesState((current) => ({ ...current, loading: true, error: '' }))
 
       try {
@@ -148,24 +95,20 @@ export function QueuesPage() {
           per_page: 20,
         }
 
-        if (user?.role === 'admin' && resolvedGroup?.id) {
-          params.group_id = resolvedGroup.id
-        }
-
         const result = await api.getQueues(params)
-        const filteredByName = (result || []).filter((queue) => {
-          if (!filters.group_name.trim()) {
+        const filteredBySubject = (result || []).filter((queue) => {
+          if (!filters.subject_name.trim()) {
             return true
           }
 
-          return normalizeName(queue.group?.name).includes(normalizeName(filters.group_name))
+          return normalizeName(queue.subject?.name).includes(normalizeName(filters.subject_name))
         })
 
         if (!cancelled) {
           setQueuesState({
             loading: false,
             error: '',
-            queues: filteredByName,
+            queues: filteredBySubject,
           })
         }
       } catch (error) {
@@ -180,7 +123,7 @@ export function QueuesPage() {
     return () => {
       cancelled = true
     }
-  }, [api, filters.group_name, filters.status, resolvedGroup, user?.role])
+  }, [api, filters.subject_name, filters.status])
 
   async function refreshQueues() {
     const params = {
@@ -189,20 +132,16 @@ export function QueuesPage() {
       per_page: 20,
     }
 
-    if (user?.role === 'admin' && resolvedGroup?.id) {
-      params.group_id = resolvedGroup.id
-    }
-
     const refreshed = await api.getQueues(params)
-    const filteredByName = (refreshed || []).filter((queue) => {
-      if (!filters.group_name.trim()) {
+    const filteredBySubject = (refreshed || []).filter((queue) => {
+      if (!filters.subject_name.trim()) {
         return true
       }
 
-      return normalizeName(queue.group?.name).includes(normalizeName(filters.group_name))
+      return normalizeName(queue.subject?.name).includes(normalizeName(filters.subject_name))
     })
 
-    setQueuesState({ loading: false, error: '', queues: filteredByName })
+    setQueuesState({ loading: false, error: '', queues: filteredBySubject })
   }
 
   async function handleCreateQueue(event) {
@@ -259,11 +198,11 @@ export function QueuesPage() {
                 ))}
               </SelectInput>
             </Field>
-            <Field label="Название группы">
+            <Field label="Название предмета">
               <TextInput
-                value={filters.group_name}
-                onChange={(event) => setFilters({ ...filters, group_name: event.target.value })}
-                placeholder={user?.group?.name || 'Например: ИУ7-81Б'}
+                value={filters.subject_name}
+                onChange={(event) => setFilters({ ...filters, subject_name: event.target.value })}
+                placeholder="Например: Математический анализ"
               />
             </Field>
           </div>
@@ -356,10 +295,7 @@ export function QueuesPage() {
           >
             <span>Открытие: {formatDateTime(queue.opens_at)}</span>
             <span>Закрытие: {formatDateTime(queue.closes_at)}</span>
-            <span>
-              Слоты: {queue.slots_count}
-              {queue.max_size ? ` / ${queue.max_size}` : ''}
-            </span>
+            <span>{formatQueueSlots(queue)}</span>
           </QueueCard>
         ))}
       </div>
