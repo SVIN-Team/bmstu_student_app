@@ -5,13 +5,15 @@
 
 ## Быстрый старт (локальный запуск)
 
-TODO
+В корне проекта выполните:
+
+```bash
+docker compose up -d
+```
 
 ## Ключевые ссылки
 
 *   **Трекер задач (Issues):** https://github.com/orgs/SVIN-Team/projects/2/views/1
-*   **Staging окружение:** TODO
-*   **Production окружение:** TODO
 
 ## Документация проекта
 

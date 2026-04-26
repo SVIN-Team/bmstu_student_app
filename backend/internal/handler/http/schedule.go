@@ -274,9 +274,6 @@ func (h *ScheduleHandler) ImportSchedule(ctx *gin.Context) {
         Errors:        result.Errors,
     }
 
-    // TODO: Track created subjects and teachers if needed
-    // For now, we'll just return empty arrays as the spec shows them as optional
-
     SuccessResponse(ctx, http.StatusOK, response)
 }
 
