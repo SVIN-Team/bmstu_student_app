@@ -1,0 +1,20 @@
+logger:
+  level: info
+
+auth:
+  access_life_time: 15m
+  refresh_life_time: 168h
+  insecure_cookies: true
+
+repository:
+  postgres_connection_string: from_env
+  perform_orm_migration: false
+  redis_connection_string: redis://localhost:6379/0
+
+test_mode: false
+enable_swagger: true
+
+routing:
+  gin_mode: debug
+  port: 8080
+
