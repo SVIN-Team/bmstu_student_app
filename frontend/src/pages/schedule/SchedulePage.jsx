@@ -18,15 +18,68 @@ import {
   TextInput,
 } from '../../components/ui/ui.jsx'
 
+function normalizeName(value) {
+  return value?.trim().toLowerCase() || ''
+}
+
+function resolveGroupId(groups, query) {
+  const normalizedQuery = normalizeName(query)
+  if (!normalizedQuery) {
+    return ''
+  }
+
+  const exactMatch = groups.find((group) => normalizeName(group.name) === normalizedQuery)
+  if (exactMatch) {
+    return exactMatch.id
+  }
+
+  const containsMatches = groups.filter((group) => normalizeName(group.name).includes(normalizedQuery))
+  if (containsMatches.length === 1) {
+    return containsMatches[0].id
+  }
+
+  return ''
+}
+
 export function SchedulePage() {
   const { api, user } = useAuth()
   const [weekOffset, setWeekOffset] = useState(0)
-  const [groupId, setGroupId] = useState('')
-  const [state, setState] = useState({ loading: true, error: '', lessons: [] })
+  const [groupQuery, setGroupQuery] = useState('')
+  const [groups, setGroups] = useState([])
+  const [state, setState] = useState({ loading: true, error: '', lessons: [], queueLessonIds: new Set() })
   const range = useMemo(() => getWeekRange(weekOffset), [weekOffset])
   const dateFrom = useMemo(() => range.from.toISOString().slice(0, 10), [range])
   const dateTo = useMemo(() => range.to.toISOString().slice(0, 10), [range])
-  const requestedGroupId = user?.role === 'admin' ? groupId.trim() : user?.group?.id || ''
+  const resolvedAdminGroupId = useMemo(() => resolveGroupId(groups, groupQuery), [groupQuery, groups])
+  const requestedGroupId = user?.role === 'admin' ? resolvedAdminGroupId : user?.group?.id || ''
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadGroups() {
+      if (user?.role !== 'admin') {
+        setGroups([])
+        return
+      }
+
+      try {
+        const result = await api.getResource('groups')
+        if (!cancelled) {
+          setGroups(Array.isArray(result) ? result : [])
+        }
+      } catch {
+        if (!cancelled) {
+          setGroups([])
+        }
+      }
+    }
+
+    loadGroups()
+
+    return () => {
+      cancelled = true
+    }
+  }, [api, user?.role])
 
   useEffect(() => {
     let cancelled = false
@@ -37,9 +90,12 @@ export function SchedulePage() {
           loading: false,
           error:
             user?.role === 'admin'
-              ? 'Укажите UUID группы, чтобы загрузить расписание.'
+              ? groupQuery.trim()
+                ? 'Группа не найдена. Уточните название.'
+                : 'Укажите название группы, чтобы загрузить расписание.'
               : 'Для пользователя не определена учебная группа.',
           lessons: [],
+          queueLessonIds: new Set(),
         })
         return
       }
@@ -47,18 +103,33 @@ export function SchedulePage() {
       setState((current) => ({ ...current, loading: true, error: '' }))
 
       try {
-        const lessons = await api.getLessons({
-          group_id: requestedGroupId,
-          date_from: dateFrom,
-          date_to: dateTo,
-        })
+        const [lessons, queues] = await Promise.all([
+          api.getLessons({
+            group_id: requestedGroupId,
+            date_from: dateFrom,
+            date_to: dateTo,
+          }),
+          api.getQueues({
+            group_id: requestedGroupId,
+            per_page: 100,
+          }),
+        ])
+
+        const queueLessonIds = new Set(
+          (queues || []).map((queue) => queue.lesson_id).filter(Boolean),
+        )
 
         if (!cancelled) {
-          setState({ loading: false, error: '', lessons: lessons || [] })
+          setState({
+            loading: false,
+            error: '',
+            lessons: lessons || [],
+            queueLessonIds,
+          })
         }
       } catch (error) {
         if (!cancelled) {
-          setState({ loading: false, error: error.message, lessons: [] })
+          setState({ loading: false, error: error.message, lessons: [], queueLessonIds: new Set() })
         }
       }
     }
@@ -68,7 +139,7 @@ export function SchedulePage() {
     return () => {
       cancelled = true
     }
-  }, [api, dateFrom, dateTo, requestedGroupId, user?.role])
+  }, [api, dateFrom, dateTo, groupQuery, requestedGroupId, user?.role])
 
   const groupedLessons = groupLessonsByDate(state.lessons)
 
@@ -96,11 +167,11 @@ export function SchedulePage() {
       <Panel title="Фильтры" description={`${formatDate(range.from)} - ${formatDate(range.to)}`}>
         <div className="form-row">
           {user?.role === 'admin' ? (
-            <Field label="UUID группы">
+            <Field label="Название группы">
               <TextInput
-                placeholder="UUID группы"
-                value={groupId}
-                onChange={(event) => setGroupId(event.target.value)}
+                placeholder="Например: ИУ7-81Б"
+                value={groupQuery}
+                onChange={(event) => setGroupQuery(event.target.value)}
               />
             </Field>
           ) : null}
@@ -119,22 +190,26 @@ export function SchedulePage() {
         Object.entries(groupedLessons).map(([dateKey, lessons]) => (
           <Panel key={dateKey} title={formatDate(dateKey)}>
             <div className="list-stack">
-              {lessons.map((lesson) => (
-                <article className="lesson-card" key={lesson.id}>
-                  <div>
-                    <h3>{lesson.subject?.name}</h3>
-                    <p>
-                      {LESSON_TYPE_LABELS[lesson.type] || lesson.type} ·{' '}
-                      {lesson.teacher?.full_name || 'Преподаватель не указан'}
-                    </p>
-                    <p>{lesson.room?.name || 'Аудитория не указана'}</p>
-                  </div>
-                  <div className="lesson-side">
-                    <strong>{formatDateTime(lesson.starts_at)}</strong>
-                    {lesson.queue_id ? <span className="badge badge-success">Есть очередь</span> : null}
-                  </div>
-                </article>
-              ))}
+              {lessons.map((lesson) => {
+                const hasQueue = lesson.type === 'lab' && state.queueLessonIds.has(lesson.id)
+
+                return (
+                  <article className="lesson-card" key={lesson.id}>
+                    <div>
+                      <h3>{lesson.subject?.name}</h3>
+                      <p>
+                        {LESSON_TYPE_LABELS[lesson.type] || lesson.type} ·{' '}
+                        {lesson.teacher?.full_name || 'Преподаватель не указан'}
+                      </p>
+                      <p>{lesson.room?.name || 'Аудитория не указана'}</p>
+                    </div>
+                    <div className="lesson-side">
+                      <strong>{formatDateTime(lesson.starts_at)}</strong>
+                      {hasQueue ? <span className="badge badge-success">Есть очередь</span> : null}
+                    </div>
+                  </article>
+                )
+              })}
             </div>
           </Panel>
         ))}

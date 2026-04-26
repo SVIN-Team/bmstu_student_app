@@ -78,8 +78,15 @@ export class ApiClient {
       }
     }
 
-    const isJson = response.headers.get('content-type')?.includes('application/json')
-    const payload = isJson ? await response.json() : null
+    if (response.status === 204) {
+      return null
+    }
+
+    const contentType = response.headers.get('content-type') || ''
+    const contentLength = response.headers.get('content-length')
+    const hasBody = contentLength !== '0'
+    const isJson = contentType.includes('application/json')
+    const payload = isJson && hasBody ? await response.json() : null
 
     if (!response.ok) {
       throw new ApiError(
@@ -272,4 +279,3 @@ export class ApiClient {
 }
 
 export { getApiBaseUrl }
-
